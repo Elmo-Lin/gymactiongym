@@ -19,7 +19,7 @@ function Field({ id, label, error, required, children, hint }) {
   )
 }
 
-export default function InfoStep({ form, onChange, errors, touched, onBlur, partnerCount, joining }) {
+export default function InfoStep({ form, onChange, errors, touched, onBlur, partnerCount }) {
   const show = (key) => (touched[key] ? errors[key] : undefined)
   const set = (key) => (e) => onChange({ [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const setPartner = (i) => (e) => {
@@ -39,11 +39,9 @@ export default function InfoStep({ form, onChange, errors, touched, onBlur, part
     <div className="step-panel">
       <h2 className="step-panel__title">填寫聯絡資料</h2>
       <p className="step-panel__lead">
-        {joining
-          ? '你將加入現有的固定班，請填寫你的聯絡資料。'
-          : partnerCount > 0
-            ? `請填寫聯絡人資料，以及另外 ${partnerCount} 位同行學員的姓名。`
-            : '教練會在 24 小時內透過電話或 LINE 與你確認課程。'}
+        {partnerCount > 0
+          ? `請填寫聯絡人資料，以及另外 ${partnerCount} 位同行朋友的姓名。`
+          : '教練會在 24 小時內透過電話或 LINE 與你確認課程。'}
       </p>
 
       <div className="form-grid">
@@ -83,7 +81,7 @@ export default function InfoStep({ form, onChange, errors, touched, onBlur, part
 
         <div className="form-grid__full">
           <Field id="note" label="備註" hint="例如：舊傷、身體狀況、想加強的部位">
-            <textarea id="note" rows={3} value={form.note} onChange={set('note')} placeholder="有什麼想先讓教練知道的嗎？" />
+            <textarea id="note" rows={3} maxLength={500} value={form.note} onChange={set('note')} placeholder="有什麼想先讓教練知道的嗎？" />
           </Field>
         </div>
 

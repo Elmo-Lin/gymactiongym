@@ -1,27 +1,19 @@
 import { getPlan, weeklyPackages } from '../../data/classes'
 import { weeklySchedule } from '../../data/schedule'
-import { canBookSlot, getSlotsForDate, getUpcomingDates, isClosedDay, weeklyStartOptions } from '../../utils/booking'
+import { canBookSlot, getUpcomingDates, isClosedDay, slotsOn, STATUS_LABELS, weeklyStartOptions } from '../../utils/booking'
 import { formatDate, formatMonthDay, WEEK_ORDER, WEEKDAY_LABELS, WEEKDAY_SHORT, weekdayOf } from '../../utils/date'
 import Icon from '../Icon'
 
-function slotHint(slot, planId) {
-  if (slot.status === 'past') return '已結束'
-  if (slot.status === 'full' || slot.status === 'taken') return '已額滿'
-  if (slot.status === 'open') return '空堂'
-  if (canBookSlot(slot, planId)) return `加入固定班・剩 ${slot.spotsLeft} 位`
-  return `${getPlan(slot.planId).formatLabel} 固定班`
-}
-
-export default function TimeStep({ state, update, bookings }) {
+export default function TimeStep({ state, update, slots }) {
   const plan = getPlan(state.planId)
   const dates = getUpcomingDates(14)
 
-  const daySlots = state.date ? getSlotsForDate(state.date, bookings) : []
+  const daySlots = state.date ? slotsOn(slots, state.date) : []
 
   const weeklySlots = state.weekday != null ? weeklySchedule[state.weekday] ?? [] : []
   const startOptions =
     state.weekday != null && state.weeklyTime
-      ? weeklyStartOptions(state.weekday, state.weeklyTime, state.weeks, state.planId, bookings)
+      ? weeklyStartOptions(slots, state.weekday, state.weeklyTime, state.weeks)
       : []
 
   return (
@@ -70,7 +62,7 @@ export default function TimeStep({ state, update, bookings }) {
           <div className="date-strip">
             {dates.map((iso) => {
               const closed = isClosedDay(iso)
-              const hasSlot = !closed && getSlotsForDate(iso, bookings).some((s) => canBookSlot(s, state.planId))
+              const hasSlot = !closed && slotsOn(slots, iso).some(canBookSlot)
               return (
                 <button
                   key={iso}
@@ -93,7 +85,7 @@ export default function TimeStep({ state, update, bookings }) {
           ) : (
             <div className="slot-grid">
               {daySlots.map((slot) => {
-                const ok = canBookSlot(slot, state.planId)
+                const ok = canBookSlot(slot)
                 return (
                   <button
                     key={slot.time}
@@ -105,7 +97,7 @@ export default function TimeStep({ state, update, bookings }) {
                     <strong>
                       {slot.time}–{slot.endTime}
                     </strong>
-                    <small>{slotHint(slot, state.planId)}</small>
+                    <small>{STATUS_LABELS[slot.status]}</small>
                   </button>
                 )
               })}
@@ -150,13 +142,10 @@ export default function TimeStep({ state, update, bookings }) {
           ) : (
             <div className="slot-grid">
               {weeklySlots.map((base) => {
-                const starts = weeklyStartOptions(state.weekday, base.time, state.weeks, state.planId, bookings)
-                const ok = starts.length > 0
-                const isGroup = base.type === 'group'
-                const groupPlan = isGroup ? getPlan(base.planId) : null
+                const ok = weeklyStartOptions(slots, state.weekday, base.time, state.weeks).length > 0
                 let hint = '空堂'
-                if (isGroup) hint = base.planId === state.planId && ok ? '加入固定班' : `${groupPlan.formatLabel} 固定班`
-                if (!ok && !isGroup) hint = '近期已被預約'
+                if (base.type === 'fixed') hint = '已被預約'
+                else if (!ok) hint = '近期已被預約'
                 return (
                   <button
                     key={base.time}

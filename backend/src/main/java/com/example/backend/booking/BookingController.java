@@ -14,21 +14,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/bookings")
 public class BookingController {
 
+	private final BookingService bookingService;
+
 	private final BookingRepository bookingRepository;
 
-	public BookingController(BookingRepository bookingRepository) {
+	public BookingController(BookingService bookingService, BookingRepository bookingRepository) {
+		this.bookingService = bookingService;
 		this.bookingRepository = bookingRepository;
 	}
 
 	@PostMapping
 	public ResponseEntity<Booking> create(@Valid @RequestBody BookingRequest request) {
-		Booking booking = bookingRepository.create(request);
-		return ResponseEntity.created(URI.create("/api/bookings/" + booking.id())).body(booking);
+		Booking booking = bookingService.create(request);
+		return ResponseEntity.created(URI.create("/api/bookings/" + booking.reference())).body(booking);
 	}
 
-	@GetMapping("/{id}")
-	public ResponseEntity<Booking> get(@PathVariable String id) {
-		return ResponseEntity.of(bookingRepository.findById(id));
+	@GetMapping("/{reference}")
+	public ResponseEntity<Booking> get(@PathVariable String reference) {
+		return ResponseEntity.of(bookingRepository.findByReference(reference).map(Booking::withMaskedContact));
 	}
 
 }

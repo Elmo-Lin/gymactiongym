@@ -5,11 +5,11 @@ import { addDays, formatDate, WEEKDAY_LABELS } from '../../utils/date'
 
 // 預約摘要與確認頁共用的明細
 export default function BookingDetails({ booking, showContact = true }) {
-  const { plan, mode, people, joining, price, sessions, discount } = booking
+  const { plan, mode, people, price, sessions, discount } = booking
   const goal = trainingGoals.find((g) => g.id === booking.goal)
 
   const rows = [
-    ['課程方案', `${plan.name}${joining ? '（加入固定班）' : ''}`],
+    ['課程方案', plan.name],
     ['教練', coach.name],
     ['上課方式', mode === 'weekly' ? `固定每週・${booking.weeks} 週` : '單次上課'],
     mode === 'weekly'

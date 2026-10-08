@@ -1095,10 +1095,6 @@
   background: var(--green);
 }
 
-.legend__dot--joinable {
-  background: var(--amber);
-}
-
 .day-tabs {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

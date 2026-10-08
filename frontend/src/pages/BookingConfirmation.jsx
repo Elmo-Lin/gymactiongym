@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import BookingDetails from '../components/booking/BookingDetails'
 import Button from '../components/Button'
@@ -5,14 +6,52 @@ import Icon from '../components/Icon'
 import StepIndicator from '../components/StepIndicator'
 import { getPlan } from '../data/classes'
 import { studioInfo } from '../data/schedule'
+import { getBooking } from '../services/bookings'
 import { BOOKING_STEPS } from '../utils/booking'
-import { findBooking, loadBookings } from '../utils/storage'
 
 export default function BookingConfirmation() {
   const [params] = useSearchParams()
   const ref = params.get('ref')
-  const stored = ref ? findBooking(ref) : loadBookings().slice(-1)[0]
+  const [result, setResult] = useState({ status: 'loading', booking: null })
+
+  useEffect(() => {
+    let ignore = false
+    getBooking(ref)
+      .then((booking) => !ignore && setResult({ status: 'done', booking }))
+      .catch(() => !ignore && setResult({ status: 'error', booking: null }))
+    return () => {
+      ignore = true
+    }
+  }, [ref])
+
+  const stored = result.booking
   const plan = stored ? getPlan(stored.planId) : null
+
+  if (result.status === 'loading') {
+    return (
+      <section className="booking">
+        <div className="container empty empty--page">
+          <Icon name="calendar" size={36} />
+          <h1>讀取預約中…</h1>
+        </div>
+      </section>
+    )
+  }
+
+  if (result.status === 'error') {
+    return (
+      <section className="booking">
+        <div className="container empty empty--page">
+          <Icon name="calendar" size={36} />
+          <h1>暫時無法讀取預約</h1>
+          <p>請稍後重新整理頁面，或透過 LINE {studioInfo.line} 與我們確認預約。</p>
+          <Button to="/schedule" arrow>
+            查看課表
+          </Button>
+        </div>
+      </section>
+    )
+  }
 
   if (!stored || !plan) {
     return (
@@ -20,7 +59,7 @@ export default function BookingConfirmation() {
         <div className="container empty empty--page">
           <Icon name="calendar" size={36} />
           <h1>找不到預約紀錄</h1>
-          <p>這個預約編號不存在，或是預約資料已從這個瀏覽器清除。</p>
+          <p>這個預約編號不存在，請確認網址是否正確。</p>
           <Button to="/booking" arrow>
             重新預約
           </Button>

@@ -4,14 +4,13 @@ import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import ScheduleCard from '../components/ScheduleCard'
 import { studioInfo } from '../data/schedule'
-import { getSlotsForDate, isClosedDay } from '../utils/booking'
+import { useSlots } from '../services/slots'
+import { isClosedDay, slotsOn } from '../utils/booking'
 import { addDays, formatDateLong, formatMonthDay, isValidISODate, startOfWeek, todayISO, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
-import { loadBookings } from '../utils/storage'
 
 const legend = [
-  { status: 'open', label: '空堂：可預約任何方案' },
-  { status: 'joinable', label: '固定班有空位：可單獨加入' },
-  { status: 'full', label: '固定班已額滿' },
+  { status: 'open', label: '空堂：可預約 1對1 / 1對2' },
+  { status: 'taken', label: '已被預約' },
 ]
 
 export default function Schedule() {
@@ -25,10 +24,11 @@ export default function Schedule() {
   const weekStart = startOfWeek(selected)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
-  const bookings = loadBookings()
-  const slotsByDay = Object.fromEntries(days.map((d) => [d, getSlotsForDate(d, bookings)]))
+  // 一次取得本週與下週的時段，切換週次時不用重新查詢
+  const { index, error } = useSlots(thisWeek, lastDay)
+  const slotsByDay = Object.fromEntries(days.map((d) => [d, slotsOn(index, d)]))
   const slots = slotsByDay[selected] ?? []
-  const available = slots.filter((s) => s.status === 'open' || s.status === 'joinable').length
+  const available = slots.filter((s) => s.status === 'open').length
 
   const selectDate = (iso) => setParams({ date: iso }, { replace: true })
   const switchWeek = (offset) => {
@@ -41,7 +41,7 @@ export default function Schedule() {
   return (
     <>
       <PageHeader eyebrow="Schedule" title="每週課表">
-        大部分學員都在每週固定時段上課。空堂可直接預約，固定班若還有名額也可以單獨加入。
+        每個時段只服務一組學員，大部分學員都在每週固定時段上課。看到空堂就可以直接預約，想和朋友一起上課就選 1對2。
       </PageHeader>
 
       <section className="section section--schedule">
@@ -65,10 +65,17 @@ export default function Schedule() {
             </ul>
           </div>
 
+          {error && (
+            <div className="notice notice--warn" role="alert">
+              <Icon name="target" size={18} />
+              <span>暫時無法取得最新的時段狀態，以下空堂可能已被預約，請以預約時的確認結果為準。</span>
+            </div>
+          )}
+
           <div className="day-tabs" role="tablist" aria-label="選擇日期">
             {days.map((d) => {
               const daySlots = slotsByDay[d] ?? []
-              const open = daySlots.filter((s) => s.status === 'open' || s.status === 'joinable').length
+              const open = daySlots.filter((s) => s.status === 'open').length
               const closed = isClosedDay(d)
               return (
                 <button

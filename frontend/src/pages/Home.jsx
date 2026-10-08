@@ -13,17 +13,17 @@ const benefits = [
   {
     icon: 'target',
     title: '專屬的動作指導',
-    text: '一位教練最多帶三位學員，每一組、每一下都看得到，動作錯了當下就修正。',
+    text: '一位教練最多帶兩位學員，每一組、每一下都看得到，動作錯了當下就修正。',
   },
   {
     icon: 'repeat',
     title: '固定時段好堅持',
-    text: '每週同一時間上課，把運動排進生活。固定班的夥伴也會讓你更不想缺席。',
+    text: '每週同一時間上課，把運動排進生活。和朋友約好一起練，也會讓你更不想缺席。',
   },
   {
     icon: 'users',
     title: '和朋友一起更划算',
-    text: '1對2、1對3 依人數分攤費用，享有私教品質，卻是更親民的價格。',
+    text: '1對2 兩人分攤費用，享有私教品質，卻是更親民的價格。',
   },
   {
     icon: 'shield',
@@ -56,7 +56,7 @@ export default function Home() {
             變得更強。
           </h1>
           <p className="hero__lead">
-            一位教練、最多三位學員。用專注的小班制訓練，幫你建立力量、改善體態，養成真正持久的運動習慣。
+            一位教練、最多兩位學員。用專注的小班制訓練，幫你建立力量、改善體態，養成真正持久的運動習慣。
           </p>
           <div className="hero__actions">
             <Button to="/booking" size="lg" arrow>
@@ -125,7 +125,7 @@ export default function Home() {
               查看全部方案
             </Button>
           </div>
-          <div className="card-grid card-grid--4">
+          <div className="card-grid card-grid--3">
             {plans.map((plan) => (
               <ClassCard key={plan.id} plan={plan} />
             ))}

@@ -4,19 +4,23 @@ import Icon from '../components/Icon'
 import Photo from '../components/Photo'
 import { getPlan, plans, weeklyPackages } from '../data/classes'
 import { coach } from '../data/coach'
+import { useSlots } from '../services/slots'
 import { formatPrice, getUpcomingAvailable } from '../utils/booking'
-import { formatDate } from '../utils/date'
+import { addDays, formatDate, todayISO } from '../utils/date'
 import NotFound from './NotFound'
 
 export default function ClassDetail() {
   const { id } = useParams()
   const plan = getPlan(id)
+  // hook 必須在 return 之前呼叫，所以放在檢查方案是否存在之前
+  const today = todayISO()
+  const { index } = useSlots(today, addDays(today, 6))
 
   if (!plan) {
     return <NotFound title="找不到這個課程方案" text="這個方案可能已經調整或不存在，請回到課程列表重新選擇。" to="/classes" cta="回到課程方案" />
   }
 
-  const sessions = getUpcomingAvailable(plan.id, 7, 6)
+  const sessions = getUpcomingAvailable(index, 7, 6)
   const others = plans.filter((p) => p.id !== plan.id).slice(0, 3)
 
   return (
@@ -79,7 +83,7 @@ export default function ClassDetail() {
                       <strong>
                         {s.time}–{s.endTime}
                       </strong>
-                      <em>{s.status === 'joinable' ? `加入固定班・剩 ${s.spotsLeft} 位` : '空堂'}</em>
+                      <em>空堂</em>
                     </Link>
                   </li>
                 ))}

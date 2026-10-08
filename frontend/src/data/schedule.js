@@ -1,74 +1,21 @@
-// 每週固定課表（星期：0 = 週日 ... 6 = 週六）。
-// 大部分學員都是固定每週同一時段上課：
-//   type: 'group' → 已有固定學員的時段（planId 為該組方案，members 為目前人數）
-//   type: 'open'  → 空堂，可預約任何方案
-// 若固定班人數未滿（例如 1對3 只有 2 人），可單獨報名加入。
+// 每週課表（星期：0 = 週日 ... 6 = 週六），需與後端 WeeklySchedule.java 保持一致。
+// 一個時段只屬於一位會員：由會員決定 1對1 或 1對2，同行的人是自己帶的朋友，不會和不認識的人一起上課。
+//   type: 'fixed' → 固定學員每週都會來上課的時段，顯示為已被預約
+//   type: 'open'  → 空堂，可以預約
 
 export const SESSION_MINUTES = 60
 export const CLOSED_WEEKDAYS = [0]
 
+const open = (time) => ({ time, type: 'open' })
+const fixed = (time) => ({ time, type: 'fixed' })
+
 export const weeklySchedule = {
-  1: [
-    { time: '07:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '08:00', type: 'open' },
-    { time: '10:00', type: 'group', planId: 'one-on-three', members: 2 },
-    { time: '11:00', type: 'open' },
-    { time: '14:00', type: 'open' },
-    { time: '16:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '18:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '19:00', type: 'group', planId: 'one-on-three', members: 3 },
-    { time: '20:00', type: 'group', planId: 'one-on-one', members: 1 },
-  ],
-  2: [
-    { time: '07:00', type: 'open' },
-    { time: '09:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '10:00', type: 'open' },
-    { time: '14:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '15:00', type: 'open' },
-    { time: '18:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '19:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '20:00', type: 'group', planId: 'one-on-three', members: 1 },
-  ],
-  3: [
-    { time: '07:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '08:00', type: 'open' },
-    { time: '10:00', type: 'group', planId: 'one-on-three', members: 2 },
-    { time: '11:00', type: 'open' },
-    { time: '15:00', type: 'open' },
-    { time: '16:00', type: 'open' },
-    { time: '18:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '19:00', type: 'group', planId: 'one-on-three', members: 3 },
-    { time: '20:00', type: 'open' },
-  ],
-  4: [
-    { time: '07:00', type: 'open' },
-    { time: '09:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '10:00', type: 'open' },
-    { time: '14:00', type: 'open' },
-    { time: '15:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '18:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '19:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '20:00', type: 'group', planId: 'one-on-three', members: 2 },
-  ],
-  5: [
-    { time: '07:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '08:00', type: 'open' },
-    { time: '10:00', type: 'open' },
-    { time: '11:00', type: 'group', planId: 'one-on-two', members: 1 },
-    { time: '14:00', type: 'open' },
-    { time: '18:00', type: 'group', planId: 'one-on-three', members: 3 },
-    { time: '19:00', type: 'open' },
-    { time: '20:00', type: 'open' },
-  ],
-  6: [
-    { time: '09:00', type: 'group', planId: 'one-on-three', members: 3 },
-    { time: '10:00', type: 'group', planId: 'one-on-two', members: 2 },
-    { time: '11:00', type: 'open' },
-    { time: '13:00', type: 'open' },
-    { time: '14:00', type: 'group', planId: 'one-on-one', members: 1 },
-    { time: '15:00', type: 'open' },
-    { time: '16:00', type: 'group', planId: 'one-on-three', members: 2 },
-  ],
+  1: [fixed('07:00'), open('08:00'), fixed('10:00'), open('11:00'), open('14:00'), fixed('16:00'), fixed('18:00'), fixed('19:00'), fixed('20:00')],
+  2: [open('07:00'), fixed('09:00'), open('10:00'), fixed('14:00'), open('15:00'), fixed('18:00'), fixed('19:00'), fixed('20:00')],
+  3: [fixed('07:00'), open('08:00'), fixed('10:00'), open('11:00'), open('15:00'), open('16:00'), fixed('18:00'), fixed('19:00'), open('20:00')],
+  4: [open('07:00'), fixed('09:00'), open('10:00'), open('14:00'), fixed('15:00'), fixed('18:00'), fixed('19:00'), fixed('20:00')],
+  5: [fixed('07:00'), open('08:00'), open('10:00'), fixed('11:00'), open('14:00'), fixed('18:00'), open('19:00'), open('20:00')],
+  6: [fixed('09:00'), fixed('10:00'), open('11:00'), open('13:00'), fixed('14:00'), open('15:00'), fixed('16:00')],
   0: [],
 }
 

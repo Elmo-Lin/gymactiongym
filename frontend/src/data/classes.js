@@ -1,6 +1,7 @@
 import { images } from './images'
 
-// 課程方案。一位教練，最多同時指導三位學員。
+// 課程方案，需與後端 Plan.java 保持一致。一位教練，最多同時指導兩位學員。
+// 每個時段只服務一組學員：1對2 的同行者是會員自己帶的朋友，不會和不認識的人一起上課。
 // 價格皆為「每人每堂」，固定時段方案依週數給予折扣。
 export const plans = [
   {
@@ -22,7 +23,7 @@ export const plans = [
       '30 分鐘依檢測結果設計的入門訓練',
       '5 分鐘討論後續訓練建議與方案',
     ],
-    suitable: ['從來沒有上過私人教練課', '想先了解教練風格再決定方案', '中斷運動一段時間，想重新開始'],
+    suitable: ['從來沒有上過私人教練課', '中斷運動一段時間，想重新開始'],
     singleOnly: true,
   },
   {
@@ -67,34 +68,12 @@ export const plans = [
     ],
     suitable: ['想和朋友、伴侶一起養成運動習慣', '兩人程度相近、目標類似', '希望兼顧個別指導與合理預算'],
   },
-  {
-    id: 'one-on-three',
-    name: '1對3 三人小團體',
-    en: 'Small Group',
-    format: 'trio',
-    formatLabel: '1對3',
-    capacity: 3,
-    duration: 60,
-    price: 800,
-    image: images.ropes,
-    tagline: '小團體的氣氛，私教的品質。',
-    description:
-      '三人一組、固定時段上課，保有教練對每個人的動作指導，又有團體課的熱度與互相激勵。也可以單獨報名，加入尚有名額的固定班。',
-    expect: [
-      '循環式訓練，三人分站輪替',
-      '教練巡迴指導、即時修正每個人的動作',
-      '以肌力為主、體能為輔的完整課表',
-      '每月一次小組體能測驗，看見彼此進步',
-    ],
-    suitable: ['喜歡有人一起練的團體氣氛', '已有基本動作概念，想穩定進步', '想用最實惠的價格接受專業指導'],
-  },
 ]
 
 export const formatFilters = [
   { value: 'all', label: '全部' },
   { value: 'solo', label: '1對1' },
   { value: 'duo', label: '1對2' },
-  { value: 'trio', label: '1對3' },
   { value: 'trial', label: '體驗課' },
 ]
 

@@ -8,20 +8,12 @@ import Button from '../components/Button'
 import Icon from '../components/Icon'
 import StepIndicator from '../components/StepIndicator'
 import { getPlan, weeklyPackages } from '../data/classes'
-import { SESSION_MINUTES, weeklySchedule } from '../data/schedule'
-import {
-  BOOKING_STEPS,
-  calcPrice,
-  canBookSlot,
-  formatPrice,
-  generateReference,
-  getSlot,
-  isJoiningSlot,
-  peopleFor,
-  weeklyStartOptions,
-} from '../utils/booking'
-import { addMinutes, formatDate, isValidISODate, isValidTime, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
-import { clearDraft, loadBookings, loadDraft, saveBooking, saveDraft } from '../utils/storage'
+import { SESSION_MINUTES } from '../data/schedule'
+import { SlotTakenError, submitBooking } from '../services/bookings'
+import { BOOKING_RANGE_DAYS, useSlots } from '../services/slots'
+import { BOOKING_STEPS, calcPrice, canBookSlot, formatPrice, getSlot, weeklyStartOptions } from '../utils/booking'
+import { addDays, addMinutes, formatDate, isValidISODate, isValidTime, todayISO, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
+import { clearDraft, loadDraft, saveDraft } from '../utils/storage'
 import { normalizePhone, validateInfo } from '../utils/validation'
 
 const DRAFT_KEY = 'action-gym:booking-draft'
@@ -67,17 +59,17 @@ function initialState(classId, params) {
 }
 
 // 將使用者的選擇整理成可預約的內容；選擇不完整或時段已無法預約時回傳 null
-function resolveSelection(state, bookings) {
+function resolveSelection(state, slots) {
   const plan = getPlan(state.planId)
   if (!plan) return null
   const mode = plan.singleOnly ? 'single' : state.mode
+  // 時段由會員包下，上課人數就是方案人數（會員 + 自己帶的朋友）
+  const people = plan.capacity
 
   if (mode === 'single') {
     if (!state.date || !state.time) return null
-    const slot = getSlot(state.date, state.time, bookings)
-    if (!canBookSlot(slot, plan.id)) return null
-    const joining = isJoiningSlot(slot)
-    const people = peopleFor(plan, joining)
+    const slot = getSlot(slots, state.date, state.time)
+    if (!canBookSlot(slot)) return null
     return {
       plan,
       mode,
@@ -87,7 +79,6 @@ function resolveSelection(state, bookings) {
       weekday: weekdayOf(state.date),
       sessions: 1,
       discount: 1,
-      joining,
       people,
       price: calcPrice(plan, people, 1),
     }
@@ -95,11 +86,8 @@ function resolveSelection(state, bookings) {
 
   const { weekday, weeklyTime: time, startDate, weeks } = state
   if (weekday == null || !time || !startDate) return null
-  if (!weeklyStartOptions(weekday, time, weeks, plan.id, bookings).includes(startDate)) return null
-  const base = (weeklySchedule[weekday] ?? []).find((s) => s.time === time)
+  if (!weeklyStartOptions(slots, weekday, time, weeks).includes(startDate)) return null
   const pkg = weeklyPackages.find((p) => p.weeks === weeks) ?? weeklyPackages[0]
-  const joining = base?.type === 'group'
-  const people = peopleFor(plan, joining)
   return {
     plan,
     mode,
@@ -110,7 +98,6 @@ function resolveSelection(state, bookings) {
     endTime: addMinutes(time, SESSION_MINUTES),
     sessions: pkg.weeks,
     discount: pkg.discount,
-    joining,
     people,
     price: calcPrice(plan, people, pkg.weeks, pkg.discount),
   }
@@ -121,10 +108,12 @@ export default function Booking() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
 
-  const [bookings] = useState(loadBookings)
+  const today = todayISO()
+  const { index: slots, error: slotsError, reload: reloadSlots } = useSlots(today, addDays(today, BOOKING_RANGE_DAYS))
   const [state, setState] = useState(() => initialState(classId, params))
   const [touched, setTouched] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   useEffect(() => {
     saveDraft(DRAFT_KEY, state)
@@ -132,8 +121,8 @@ export default function Booking() {
 
   const invalidClassId = classId && !getPlan(classId)
   const plan = getPlan(state.planId)
-  const selection = resolveSelection(state, bookings)
-  const partnerCount = selection && !selection.joining ? selection.people - 1 : 0
+  const selection = resolveSelection(state, slots)
+  const partnerCount = selection ? selection.people - 1 : 0
   const errors = validateInfo(state.form, partnerCount)
   const infoValid = Object.keys(errors).length === 0
 
@@ -143,11 +132,12 @@ export default function Booking() {
   if (step >= 3 && !selection) step = 2
   if (step >= 4 && !infoValid) step = 3
 
-  const presetSlot = state.date && state.time ? getSlot(state.date, state.time, bookings) : null
+  const presetSlot = state.date && state.time ? getSlot(slots, state.date, state.time) : null
 
   const update = (patch) => setState((s) => ({ ...s, ...patch }))
   const updateForm = (patch) => setState((s) => ({ ...s, form: { ...s.form, ...patch } }))
   const goTo = (n) => {
+    setSubmitError(null)
     update({ step: n })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -164,15 +154,16 @@ export default function Booking() {
     document.getElementById(first)?.focus()
   }
 
-  const confirm = () => {
-    // 送出前再檢查一次時段是否仍可預約
-    const fresh = resolveSelection(state, loadBookings())
+  const confirm = async () => {
+    if (submitting) return
+    // 送出前再檢查一次時段是否仍可預約（最終仍以後端檢查為準）
+    const fresh = resolveSelection(state, slots)
     if (!fresh || !infoValid) return goTo(fresh ? 3 : 2)
 
     setSubmitting(true)
+    setSubmitError(null)
     const { form } = state
     const booking = {
-      reference: generateReference(),
       planId: fresh.plan.id,
       mode: fresh.mode,
       date: fresh.date ?? null,
@@ -183,7 +174,6 @@ export default function Booking() {
       endTime: fresh.endTime,
       sessions: fresh.sessions,
       discount: fresh.discount,
-      joining: fresh.joining,
       people: fresh.people,
       price: fresh.price,
       contact: { name: form.name.trim(), email: form.email.trim(), phone: normalizePhone(form.phone) },
@@ -191,15 +181,24 @@ export default function Booking() {
       goal: form.goal,
       experience: form.experience,
       note: form.note.trim(),
-      createdAt: new Date().toISOString(),
     }
 
-    // 模擬送出延遲，未來改為呼叫後端 API
-    setTimeout(() => {
-      saveBooking(booking)
+    try {
+      const saved = await submitBooking(booking)
       clearDraft(DRAFT_KEY)
-      navigate(`/booking/confirmation?ref=${booking.reference}`, { replace: true })
-    }, 700)
+      navigate(`/booking/confirmation?ref=${saved.reference}`, { replace: true })
+    } catch (err) {
+      setSubmitting(false)
+      if (err instanceof SlotTakenError) {
+        // 時段在填資料的這段時間被其他人約走：回到選時段，並重新讀取最新的時段狀態
+        setSubmitError('這個時段剛剛被其他人預約了，請重新選擇時段。你填的聯絡資料都還保留著。')
+        update({ time: null, startDate: null, step: 2 })
+        reloadSlots()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        setSubmitError('預約送出失敗，請稍後再試，或直接透過 LINE 與我們聯絡。')
+      }
+    }
   }
 
   const canNext = (step === 1 && plan) || (step === 2 && selection) || step === 3
@@ -220,10 +219,24 @@ export default function Booking() {
           </div>
         )}
 
+        {slotsError && (
+          <div className="notice notice--warn" role="alert">
+            <Icon name="target" size={18} />
+            <span>暫時無法取得最新的時段狀態，顯示的空堂可能已被預約，送出時會再確認一次。</span>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="notice notice--warn" role="alert">
+            <Icon name="target" size={18} />
+            <span>{submitError}</span>
+          </div>
+        )}
+
         <div className="booking__layout">
           <div className="booking__main">
             {step === 1 && <PlanStep planId={state.planId} presetSlot={presetSlot} onSelect={selectPlan} />}
-            {step === 2 && <TimeStep state={{ ...state, mode: plan.singleOnly ? 'single' : state.mode }} update={update} bookings={bookings} />}
+            {step === 2 && <TimeStep state={{ ...state, mode: plan.singleOnly ? 'single' : state.mode }} update={update} slots={slots} />}
             {step === 3 && (
               <InfoStep
                 form={state.form}
@@ -232,7 +245,6 @@ export default function Booking() {
                 touched={touched}
                 onBlur={(k) => setTouched((t) => ({ ...t, [k]: true }))}
                 partnerCount={partnerCount}
-                joining={selection.joining}
               />
             )}
             {step === 4 && (
@@ -300,7 +312,7 @@ export default function Booking() {
                     </div>
                     <div>
                       <dt>人數</dt>
-                      <dd>{selection ? `${selection.people} 人${selection.joining ? '（加入固定班）' : ''}` : `${plan.capacity} 人`}</dd>
+                      <dd>{plan.capacity} 人</dd>
                     </div>
                   </dl>
                   <div className="summary-total">

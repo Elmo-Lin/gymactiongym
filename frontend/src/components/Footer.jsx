@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { config } from '../config'
 import { studioInfo } from '../data/schedule'
 import Icon from './Icon'
 import Logo from './Logo'
@@ -10,7 +11,7 @@ export default function Footer() {
       <div className="container footer__grid">
         <div className="footer__brand">
           <Logo light />
-          <p>一位教練、最多三位學員。位於桃園楊梅的小型肌力訓練工作室。</p>
+          <p>一位教練、最多兩位學員。位於桃園楊梅的小型肌力訓練工作室。</p>
           <a className="footer__rating" href={studioInfo.mapUrl} target="_blank" rel="noreferrer">
             <span aria-hidden="true">★★★★★</span>
             Google 評價 {studioInfo.rating.score}（{studioInfo.rating.count} 則）
@@ -81,7 +82,7 @@ export default function Footer() {
 
       <div className="container footer__bottom">
         <p>© {new Date().getFullYear()} 即動 ACTION GYM. All rights reserved.</p>
-        <p>本網站預約功能為示範版本，資料僅儲存於您的瀏覽器。</p>
+        {!config.useApi && <p>本網站預約功能為示範版本，資料僅儲存於您的瀏覽器。</p>}
       </div>
     </footer>
   )

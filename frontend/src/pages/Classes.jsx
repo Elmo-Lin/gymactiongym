@@ -95,7 +95,7 @@ export default function Classes() {
               </tbody>
             </table>
           </div>
-          <p className="footnote">＊首次體驗課 {formatPrice(plans[0].price)}，限單人、單次預約。1對3 固定班若有空位，可單獨報名加入。</p>
+          <p className="footnote">＊首次體驗課 {formatPrice(plans[0].price)}，限單人、單次預約。每個時段只服務一組學員，1對2 請和自己的朋友一起報名。</p>
         </div>
       </section>
 

@@ -645,8 +645,7 @@
   transition: border-color 0.2s, box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
 }
 
-.schedule-card--open:hover,
-.schedule-card--joinable:hover {
+.schedule-card--open:hover {
   border-color: transparent;
   box-shadow: var(--shadow);
   transform: translateY(-2px);
@@ -656,11 +655,6 @@
   border-left: 4px solid var(--green);
 }
 
-.schedule-card--joinable {
-  border-left: 4px solid var(--amber);
-}
-
-.schedule-card--full,
 .schedule-card--taken,
 .schedule-card--past {
   background: transparent;
@@ -720,36 +714,9 @@
   color: var(--green-strong);
 }
 
-.status--joinable {
-  background: var(--amber-soft);
-  color: var(--amber);
-}
-
 .spots--open {
   color: var(--green-strong);
   font-weight: 500;
-}
-
-.spots--joinable {
-  color: var(--amber);
-  font-weight: 700;
-}
-
-.seat-dots {
-  display: flex;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.seat-dots span {
-  width: 22px;
-  height: 6px;
-  border-radius: 4px;
-  background: var(--line);
-}
-
-.seat-dots .is-filled {
-  background: var(--charcoal-3);
 }
 
 @media (max-width: 640px) {

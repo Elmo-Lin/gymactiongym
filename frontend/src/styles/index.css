@@ -380,10 +380,6 @@ dd {
   background: var(--charcoal-3);
 }
 
-.badge--trio {
-  background: #5a5d61;
-}
-
 .chip {
   padding: 9px 20px;
   border: 1.5px solid var(--line);
