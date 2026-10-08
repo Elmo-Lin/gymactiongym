@@ -105,7 +105,7 @@ export function getBusinessJsonLd() {
     },
     areaServed: '桃園市楊梅區',
     hasMap: studioInfo.mapUrl,
-    sameAs: [`https://www.instagram.com/${studioInfo.instagram.replace(/^@/, '')}/`],
+    sameAs: [studioInfo.instagramUrl],
     openingHoursSpecification: studioInfo.hours
       .filter((h) => DAY_CODES[h.days] && h.time.includes('–'))
       .map((h) => {

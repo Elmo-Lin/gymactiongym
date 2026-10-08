@@ -17,7 +17,7 @@ export default function Footer() {
           </a>
           <a
             className="footer__social"
-            href="https://www.instagram.com/"
+            href={studioInfo.instagramUrl}
             target="_blank"
             rel="noreferrer"
             aria-label="Instagram"

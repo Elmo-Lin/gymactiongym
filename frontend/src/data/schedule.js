@@ -80,7 +80,8 @@ export const studioInfo = {
   rating: { score: '5.0', count: 23 },
   line: '@actiongym',
   email: 'hello@actiongym.tw',
-  instagram: '@action.gym.tw',
+  instagram: '@gymactiongym',
+  instagramUrl: 'https://www.instagram.com/gymactiongym/',
   hours: [
     { days: '週一至週五', time: '07:00 – 21:00' },
     { days: '週六', time: '09:00 – 17:00' },
