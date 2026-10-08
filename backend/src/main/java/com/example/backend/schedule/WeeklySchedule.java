@@ -2,6 +2,7 @@ package com.example.backend.schedule;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -16,34 +17,20 @@ public final class WeeklySchedule {
 	public record Entry(String time, boolean fixed) {
 	}
 
-	private static Entry open(String time) {
-		return new Entry(time, false);
-	}
-
-	private static Entry fixed(String time) {
-		return new Entry(time, true);
+	// 全部都是空堂的時段。要把某個時段保留給固定學員，改用 new Entry("07:00", true)，
+	// 並同步修改前端 frontend/src/data/schedule.js
+	private static List<Entry> open(String... times) {
+		return Arrays.stream(times).map((time) -> new Entry(time, false)).toList();
 	}
 
 	// 週日公休，沒有時段
 	private static final Map<DayOfWeek, List<Entry>> WEEK = Map.of(
-			DayOfWeek.MONDAY, List.of(
-					fixed("07:00"), open("08:00"), fixed("10:00"), open("11:00"), open("14:00"),
-					fixed("16:00"), fixed("18:00"), fixed("19:00"), fixed("20:00")),
-			DayOfWeek.TUESDAY, List.of(
-					open("07:00"), fixed("09:00"), open("10:00"), fixed("14:00"), open("15:00"),
-					fixed("18:00"), fixed("19:00"), fixed("20:00")),
-			DayOfWeek.WEDNESDAY, List.of(
-					fixed("07:00"), open("08:00"), fixed("10:00"), open("11:00"), open("15:00"),
-					open("16:00"), fixed("18:00"), fixed("19:00"), open("20:00")),
-			DayOfWeek.THURSDAY, List.of(
-					open("07:00"), fixed("09:00"), open("10:00"), open("14:00"), fixed("15:00"),
-					fixed("18:00"), fixed("19:00"), fixed("20:00")),
-			DayOfWeek.FRIDAY, List.of(
-					fixed("07:00"), open("08:00"), open("10:00"), fixed("11:00"), open("14:00"),
-					fixed("18:00"), open("19:00"), open("20:00")),
-			DayOfWeek.SATURDAY, List.of(
-					fixed("09:00"), fixed("10:00"), open("11:00"), open("13:00"), fixed("14:00"),
-					open("15:00"), fixed("16:00")));
+			DayOfWeek.MONDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "16:00", "18:00", "19:00", "20:00"),
+			DayOfWeek.TUESDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
+			DayOfWeek.WEDNESDAY, open("07:00", "08:00", "10:00", "11:00", "15:00", "16:00", "18:00", "19:00", "20:00"),
+			DayOfWeek.THURSDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
+			DayOfWeek.FRIDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "18:00", "19:00", "20:00"),
+			DayOfWeek.SATURDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"));
 
 	private WeeklySchedule() {
 	}
