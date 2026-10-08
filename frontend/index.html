@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="位於桃園楊梅的小班制肌力訓練工作室，一位教練最多三位學員。提供 1對1、1對2、1對3 私人教練課與首次體驗課，增肌、減脂、體態改善，線上預約每週固定時段。" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://gymactiongym.web.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="即動 ACTION GYM" />
+    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:title" content="即動 ACTION GYM｜楊梅健身房・小班制私人教練" />
+    <meta property="og:description" content="位於桃園楊梅的小班制肌力訓練工作室，一位教練最多三位學員。提供 1對1、1對2、1對3 私人教練課與首次體驗課，增肌、減脂、體態改善，線上預約每週固定時段。" />
+    <meta property="og:url" content="https://gymactiongym.web.app/" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&amp;fit=crop&amp;w=2000&amp;q=80" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#2b2d2f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <title>即動 ACTION GYM｜楊梅健身房・小班制私人教練</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // 預先產生的頁面會比 JavaScript 先出現，React 接手前先讓手機選單按鈕可以開關
+      document.addEventListener('click', function (e) {
+        if (window.__navbarReady || !e.target.closest) return
+        var btn = e.target.closest('.navbar__toggle')
+        var menu = document.getElementById('mobile-menu')
+        if (!btn || !menu) return
+        var open = menu.hidden
+        menu.hidden = !open
+        btn.closest('.navbar').classList.toggle('navbar--open', open)
+        btn.setAttribute('aria-expanded', String(open))
+        document.body.style.overflow = open ? 'hidden' : ''
+      })
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
