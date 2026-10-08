@@ -1,14 +1,53 @@
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Button from '../components/Button'
 import Icon from '../components/Icon'
 import { studioInfo } from '../data/schedule'
+import { getOrder } from '../services/orders'
 import { formatPrice } from '../utils/booking'
-import { findOrder, loadOrders } from '../utils/storage'
 
 export default function OrderConfirmation() {
   const [params] = useSearchParams()
   const ref = params.get('ref')
-  const order = ref ? findOrder(ref) : loadOrders().slice(-1)[0]
+  const [result, setResult] = useState({ status: 'loading', order: null })
+
+  useEffect(() => {
+    let ignore = false
+    getOrder(ref)
+      .then((order) => !ignore && setResult({ status: 'done', order }))
+      .catch(() => !ignore && setResult({ status: 'error', order: null }))
+    return () => {
+      ignore = true
+    }
+  }, [ref])
+
+  const { status, order } = result
+
+  if (status === 'loading') {
+    return (
+      <section className="booking">
+        <div className="container empty empty--page">
+          <Icon name="cart" size={36} />
+          <h1>讀取訂單中…</h1>
+        </div>
+      </section>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <section className="booking">
+        <div className="container empty empty--page">
+          <Icon name="cart" size={36} />
+          <h1>暫時無法讀取訂單</h1>
+          <p>請稍後重新整理頁面，或透過 LINE {studioInfo.line} 與我們確認訂單。</p>
+          <Button to="/shop" arrow>
+            回到營養補給
+          </Button>
+        </div>
+      </section>
+    )
+  }
 
   if (!order) {
     return (
@@ -16,7 +55,7 @@ export default function OrderConfirmation() {
         <div className="container empty empty--page">
           <Icon name="cart" size={36} />
           <h1>找不到訂單紀錄</h1>
-          <p>這個訂單編號不存在，或是訂單資料已從這個瀏覽器清除。</p>
+          <p>這個訂單編號不存在，請確認網址是否正確。</p>
           <Button to="/shop" arrow>
             回到營養補給
           </Button>

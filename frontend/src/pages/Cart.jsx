@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Icon from '../components/Icon'
 import { MAX_QTY, useCart } from '../context/cart'
-import { formatPrice, generateReference } from '../utils/booking'
-import { saveOrder } from '../utils/storage'
+import { submitOrder } from '../services/orders'
+import { formatPrice } from '../utils/booking'
 import { normalizePhone } from '../utils/validation'
 
 const PHONE_RE = /^09\d{8}$/
@@ -46,6 +46,8 @@ export default function Cart() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', phone: '', note: '' })
   const [touched, setTouched] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
   const errors = validate(form)
   const show = (key) => (touched[key] ? errors[key] : undefined)
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
@@ -65,29 +67,34 @@ export default function Cart() {
     )
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
     if (Object.keys(errors).length > 0) {
       setTouched({ name: true, phone: true })
       return
     }
-    const order = {
-      reference: generateReference().replace(/^AG/, 'OD'),
-      createdAt: new Date().toISOString(),
-      contact: { name: form.name.trim(), phone: normalizePhone(form.phone), note: form.note.trim() },
-      items: lines.map((l) => ({
-        productId: l.productId,
-        name: l.product.name,
-        seriesName: l.product.seriesName,
-        option: l.option,
-        price: l.price,
-        qty: l.qty,
-      })),
-      total,
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const order = await submitOrder({
+        contact: { name: form.name.trim(), phone: normalizePhone(form.phone), note: form.note.trim() },
+        items: lines.map((l) => ({
+          productId: l.productId,
+          name: l.product.name,
+          seriesName: l.product.seriesName,
+          option: l.option,
+          price: l.price,
+          qty: l.qty,
+        })),
+      })
+      clear()
+      navigate(`/cart/confirmation?ref=${order.reference}`)
+    } catch {
+      // 送出失敗時保留購物車，讓客人可以再試一次
+      setSubmitError('訂單送出失敗，請稍後再試，或直接透過 LINE 與我們聯絡。')
+      setSubmitting(false)
     }
-    saveOrder(order)
-    clear()
-    navigate(`/cart/confirmation?ref=${order.reference}`)
   }
 
   return (
@@ -179,6 +186,7 @@ export default function Cart() {
                   <textarea
                     id="order-note"
                     rows={3}
+                    maxLength={500}
                     value={form.note}
                     onChange={set('note')}
                     placeholder="例如：預計取貨日期、想詢問的口味"
@@ -209,8 +217,22 @@ export default function Cart() {
                 <span>合計</span>
                 <strong>{formatPrice(total)}</strong>
               </div>
-              <Button type="submit" form="checkout" size="lg" block arrow className="order-submit">
-                送出訂單
+              {submitError && (
+                <div className="notice notice--warn" role="alert">
+                  <Icon name="target" size={18} />
+                  <span>{submitError}</span>
+                </div>
+              )}
+              <Button
+                type="submit"
+                form="checkout"
+                size="lg"
+                block
+                arrow={!submitting}
+                disabled={submitting}
+                className={`order-submit ${submitting ? 'is-loading' : ''}`}
+              >
+                {submitting ? '送出中…' : '送出訂單'}
               </Button>
               <p className="summary-card__note">
                 <button type="button" className="text-btn" onClick={clear}>

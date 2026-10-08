@@ -28,7 +28,7 @@ public class OrderController {
 
 	@GetMapping("/{reference}")
 	public ResponseEntity<Order> get(@PathVariable String reference) {
-		return ResponseEntity.of(orderRepository.findByReference(reference));
+		return ResponseEntity.of(orderRepository.findByReference(reference).map(Order::withMaskedPhone));
 	}
 
 }

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:static": "vite --mode static",
     "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.js",
+    "build:static": "vite build --mode static && vite build --ssr src/entry-server.jsx --outDir dist-ssr --mode static && node scripts/prerender.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
