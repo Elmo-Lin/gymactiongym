@@ -1,7 +1,7 @@
 import Button from '../components/Button'
+import CoachPhoto from '../components/CoachPhoto'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
-import Photo from '../components/Photo'
 import SectionHeading from '../components/SectionHeading'
 import { coach } from '../data/coach'
 
@@ -15,7 +15,7 @@ export default function Coach() {
       <section className="section">
         <div className="container coach-profile">
           <div className="coach-profile__media">
-            <Photo src={coach.photo} alt={coach.name} className="rounded-xl coach-profile__photo" eager />
+            <CoachPhoto className="rounded-xl coach-profile__photo" eager />
           </div>
           <div className="coach-profile__body">
             <p className="eyebrow">{coach.title}</p>

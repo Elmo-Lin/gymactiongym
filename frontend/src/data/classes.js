@@ -1,5 +1,3 @@
-import { images } from './images'
-
 // 課程方案，需與後端 Plan.java 保持一致。一位教練，最多同時指導兩位學員。
 // 每個時段只服務一組學員：1對2 的同行者是會員自己帶的朋友，不會和不認識的人一起上課。
 // 價格皆為「每人每堂」，固定時段方案依週數給予折扣。
@@ -13,7 +11,6 @@ export const plans = [
     capacity: 1,
     duration: 60,
     price: 800,
-    image: images.tools,
     tagline: '第一次來？從一堂完整的評估開始。',
     description:
       '教練會先了解你的運動習慣、生活作息與目標，再透過動作檢測找出身體的強項與需要加強的地方，最後帶你實際練一輪，讓你清楚知道接下來該怎麼練。',
@@ -35,7 +32,6 @@ export const plans = [
     capacity: 1,
     duration: 60,
     price: 1600,
-    image: images.grip,
     tagline: '整堂課的注意力都在你身上。',
     description:
       '完全依照你的身體狀況與目標設計課表，每一個動作都有教練即時修正。適合有明確目標、需要高度客製化，或有舊傷需要特別留意的學員。',
@@ -56,7 +52,6 @@ export const plans = [
     capacity: 2,
     duration: 60,
     price: 1000,
-    image: images.squat,
     tagline: '找個夥伴一起練，更容易堅持。',
     description:
       '和朋友、伴侶或家人一起上課，教練依兩人的程度安排同主題、不同強度的訓練。有人陪伴更有動力，費用也更划算。',

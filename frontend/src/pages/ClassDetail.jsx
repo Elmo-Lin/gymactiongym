@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import Button from '../components/Button'
 import Icon from '../components/Icon'
-import Photo from '../components/Photo'
+import CoachPhoto from '../components/CoachPhoto'
+import PlanVisual from '../components/PlanVisual'
 import { getPlan, plans, weeklyPackages } from '../data/classes'
 import { coach } from '../data/coach'
 import { useSlots } from '../services/slots'
@@ -26,7 +27,7 @@ export default function ClassDetail() {
   return (
     <>
       <section className="detail-hero">
-        <Photo src={plan.image} alt={plan.name} className="detail-hero__bg" eager />
+        <PlanVisual plan={plan} className="detail-hero__bg plan-visual--hero" />
         <div className="detail-hero__overlay" />
         <div className="container detail-hero__content">
           <Link to="/classes" className="back-link">
@@ -63,7 +64,7 @@ export default function ClassDetail() {
 
             <h2 className="detail__heading">授課教練</h2>
             <Link to="/coach" className="mini-coach">
-              <Photo src={coach.photo} alt={coach.name} className="mini-coach__photo" />
+              <CoachPhoto className="mini-coach__photo" />
               <div>
                 <strong>{coach.name}</strong>
                 <span>
@@ -147,7 +148,7 @@ export default function ClassDetail() {
           <div className="other-plans">
             {others.map((p) => (
               <Link key={p.id} to={`/classes/${p.id}`} className="other-plan">
-                <Photo src={p.image} className="other-plan__photo" />
+                <PlanVisual plan={p} className="other-plan__photo" />
                 <div>
                   <span className={`badge badge--${p.format}`}>{p.formatLabel}</span>
                   <strong>{p.name}</strong>

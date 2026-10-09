@@ -1,12 +1,10 @@
-import { images } from './images'
-
 // 健身房唯一的教練。姓名、證照與經歷為示意資料，請替換成實際內容。
 export const coach = {
   id: 'stone',
   name: '石頭教練',
   title: '創辦人・主教練',
-  photo: images.coach,
-  photoAlt: images.coachAlt,
+  // 教練本人的照片網址。還沒有實拍照時保持 null，網站會改顯示品牌圖案（components/CoachPhoto.jsx）
+  photo: null,
   intro: '相信好的訓練不是把人操到極限，而是讓每個人都能用正確的方式，持續地變強。',
   bio: [
     '大學主修運動科學，畢業後在連鎖健身房擔任教練五年，帶過上百位學員。看多了大型健身房裡「一位教練同時盯十幾個人」的狀況，決定開一間屬於自己的小型工作室。',

@@ -23,22 +23,6 @@
   margin-bottom: 48px;
 }
 
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 88px;
-}
-
-.split--top {
-  align-items: start;
-  margin-top: 64px;
-}
-
-.split__media {
-  position: relative;
-}
-
 .split__text .section-heading {
   margin-bottom: 24px;
 }
@@ -47,36 +31,52 @@
   margin-top: 12px;
 }
 
-.floating-note {
-  position: absolute;
-  left: 24px;
-  bottom: 24px;
-  max-width: calc(100% - 48px);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 22px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-lg);
+/* 照片貼齊畫面左緣；上下保留和其他區塊相同的留白，避免直接貼著上方的深色主視覺。
+   文字對齊網站內容（.container）的右邊界 */
+.bleed-split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  padding-block: 112px;
 }
 
-.floating-note__bolt {
-  width: 16px;
-  height: 32px;
+.bleed-split__media {
+  position: relative;
+  min-height: 520px;
+}
+
+.bleed-split__photo {
+  position: absolute;
+  inset: 0;
+}
+
+.bleed-split__text {
+  align-self: center;
+  padding-block: 24px;
+  padding-left: 72px;
+  padding-right: max(var(--gutter), calc((100vw - 1200px) / 2 + var(--gutter)));
+}
+
+/* 文字區裡的重點提示，上下用細線和內文、按鈕分開 */
+.split__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 8px 0 16px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.split__note-bolt {
+  flex: none;
+  width: 10px;
+  height: 20px;
   color: var(--green);
 }
 
-.floating-note p {
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
-.floating-note strong {
-  font-size: 16px;
+.split__note strong {
   color: var(--ink);
 }
 
@@ -105,15 +105,19 @@
     padding-block: 80px;
   }
 
-  .split {
+  /* 手機、平板：照片在上、滿版；文字在下 */
+  .bleed-split {
     grid-template-columns: 1fr;
-    gap: 48px;
+    padding-block: 64px 80px;
   }
 
-  .floating-note {
-    left: 16px;
-    bottom: 16px;
-    max-width: calc(100% - 32px);
+  .bleed-split__media {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .bleed-split__text {
+    padding: 48px var(--gutter) 0;
   }
 
   .card-grid--3 {
@@ -138,10 +142,6 @@
   .card-grid--3,
   .card-grid--4 {
     grid-template-columns: 1fr;
-  }
-
-  .tall {
-    aspect-ratio: 4 / 4.2;
   }
 }
 
@@ -451,112 +451,6 @@
 @media (max-width: 640px) {
   .cta__content {
     padding-block: 96px;
-  }
-}
-
-/* ---------- About ---------- */
-.values {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-
-.value {
-  padding: 40px 32px;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-}
-
-.value__num {
-  font-family: var(--font-display);
-  font-weight: 800;
-  color: var(--green);
-}
-
-.value h3 {
-  margin: 16px 0 12px;
-  font-family: var(--font-body);
-  font-size: 22px;
-}
-
-.value p {
-  color: var(--ink-2);
-}
-
-.gallery {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  grid-template-rows: 240px 240px;
-  gap: 20px;
-}
-
-.gallery .photo {
-  border-radius: var(--radius-lg);
-}
-
-.gallery__a {
-  grid-row: span 2;
-}
-
-.approach {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.approach li {
-  padding: 32px 28px;
-  border-radius: var(--radius-lg);
-  background: var(--charcoal-2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.approach__num {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--green);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 800;
-}
-
-.approach h3 {
-  margin: 20px 0 8px;
-  color: #fff;
-  font-size: 22px;
-}
-
-.approach p {
-  font-size: 15px;
-}
-
-@media (max-width: 960px) {
-  .values {
-    grid-template-columns: 1fr;
-  }
-
-  .approach {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .gallery {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 220px 140px;
-    gap: 12px;
-  }
-
-  .gallery__a {
-    grid-row: auto;
-    grid-column: span 2;
-  }
-
-  .approach {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -959,6 +853,11 @@
 
 .coach-profile__photo {
   aspect-ratio: 4 / 5;
+}
+
+/* 還沒有教練照時，品牌圖案不需要佔一整張直式照片的高度 */
+.coach-profile__photo.coach-placeholder {
+  aspect-ratio: 1 / 1;
 }
 
 .coach-profile__name {

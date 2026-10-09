@@ -1,10 +1,9 @@
-import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import CartProvider from './components/CartProvider'
 import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import ScrollToTop from './components/ScrollToTop'
 import Seo from './components/Seo'
-import About from './pages/About'
 import Booking from './pages/Booking'
 import Cart from './pages/Cart'
 import BookingConfirmation from './pages/BookingConfirmation'
@@ -43,7 +42,8 @@ export function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        {/* 「關於我們」已併入首頁與教練介紹，舊連結導回首頁（正式站由 firebase.json 的 redirects 處理） */}
+        <Route path="/about" element={<Navigate to="/" replace />} />
         <Route path="/classes" element={<Classes />} />
         <Route path="/classes/:id" element={<ClassDetail />} />
         <Route path="/coach" element={<Coach />} />

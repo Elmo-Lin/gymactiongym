@@ -347,15 +347,13 @@ dd {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* 降低彩度，讓不同來源的照片色調一致，綠色的按鈕與標籤也更突出 */
+  filter: saturate(0.45) contrast(1.04);
   transition: transform 0.8s var(--ease);
 }
 
 .rounded-xl {
   border-radius: var(--radius-xl);
-}
-
-.tall {
-  aspect-ratio: 4 / 5;
 }
 
 /* ---------- Small atoms ---------- */

@@ -1,11 +1,11 @@
 import { coach } from '../data/coach'
 import Button from './Button'
-import Photo from './Photo'
+import CoachPhoto from './CoachPhoto'
 
 export default function CoachCard() {
   return (
-    <article className="coach-card">
-      <Photo src={coach.photo} alt={coach.name} className="coach-card__photo" />
+    <article className={`coach-card ${coach.photo ? '' : 'coach-card--placeholder'}`}>
+      <CoachPhoto className="coach-card__photo" />
       <div className="coach-card__body">
         <p className="eyebrow">{coach.title}</p>
         <h3 className="coach-card__name">{coach.name}</h3>

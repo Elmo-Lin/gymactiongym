@@ -15,11 +15,6 @@ const pages = {
     description:
       '位於桃園楊梅的小班制肌力訓練工作室，一位教練最多兩位學員。提供 1對1、1對2 私人教練課與首次體驗課，增肌、減脂、體態改善，線上預約每週固定時段。',
   },
-  '/about': {
-    title: `關於我們・楊梅小班制健身工作室${suffix}`,
-    description:
-      '即動 ACTION GYM 是位於桃園楊梅的小型肌力訓練工作室，堅持一位教練最多帶兩位學員，重視動作品質與循序漸進，讓訓練成為長久的習慣。',
-  },
   '/classes': {
     title: `課程方案與價格・楊梅私人教練課${suffix}`,
     description:
@@ -61,7 +56,6 @@ export function getSeo(pathname) {
       meta = {
         title: `${plan.name}・NT$${plan.price.toLocaleString('en-US')} 起${suffix}`,
         description: `${plan.tagline}${plan.description}`.slice(0, 150),
-        image: plan.image,
       }
     }
   }
@@ -76,7 +70,7 @@ export function getSeo(pathname) {
 }
 
 // 要預先產生 HTML、並列入 sitemap 的網址
-export const indexablePaths = ['/', '/about', '/classes', ...plans.map((p) => `/classes/${p.id}`), '/coach', '/schedule', '/shop']
+export const indexablePaths = ['/', '/classes', ...plans.map((p) => `/classes/${p.id}`), '/coach', '/schedule', '/shop']
 
 const DAY_CODES = { 週一至週五: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 週六: ['Saturday'], 週日: ['Sunday'] }
 

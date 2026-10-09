@@ -89,29 +89,34 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container split">
-          <div className="split__media">
-            <Photo src={images.studio} alt="即動 ACTION GYM 訓練空間" className="rounded-xl tall" />
-            <div className="floating-note">
-              <Bolt className="floating-note__bolt" />
-              <p>
-                <strong>全預約制</strong>
-                每個時段只服務一組學員
-              </p>
-            </div>
-          </div>
-          <div className="split__text">
-            <SectionHeading eyebrow="關於即動" title="不是大型健身房，是你的專屬訓練基地。">
-              即動 ACTION GYM 是一間只有一位教練的小型工作室。沒有擁擠的器材區、沒有推銷，只有一個安靜的空間，和一位真正記得你身體狀況的教練。
-            </SectionHeading>
-            <p className="body-text">
-              我們相信「即刻行動」比完美計畫更重要。不論你是第一次接觸重量訓練，還是想突破停滯期，都可以從一堂體驗課開始，找到屬於你的節奏。
-            </p>
-            <Button to="/about" variant="secondary" arrow>
-              認識我們
-            </Button>
-          </div>
+      <section className="bleed-split">
+        <div className="bleed-split__media">
+          <Photo src={images.studio} alt="即動 ACTION GYM 訓練空間" className="bleed-split__photo" />
+        </div>
+        <div className="bleed-split__text split__text">
+          <SectionHeading
+            eyebrow="關於即動"
+            title={
+              <>
+                不是大型健身房，
+                <br />
+                是你的專屬訓練基地。
+              </>
+            }
+          >
+            即動 ACTION GYM 是一間只有一位教練的小型工作室。沒有擁擠的器材區、沒有推銷，只有一個安靜的空間，和一位真正記得你身體狀況的教練。
+          </SectionHeading>
+          <p className="body-text">
+            我們相信「即刻行動」比完美計畫更重要。不論你是第一次接觸重量訓練，還是想突破停滯期，都可以從一堂體驗課開始，找到屬於你的節奏。
+          </p>
+          <p className="split__note">
+            <Bolt className="split__note-bolt" />
+            <strong>全預約制</strong>
+            <span>每個時段只服務一組學員</span>
+          </p>
+          <Button to="/coach" variant="secondary" arrow>
+            認識教練
+          </Button>
         </div>
       </section>
 
@@ -152,7 +157,17 @@ export default function Home() {
 
       <section className="section section--dark">
         <div className="container">
-          <SectionHeading eyebrow="你的教練" title="從第一堂課開始，都是同一位教練。" light />
+          <SectionHeading
+            eyebrow="你的教練"
+            title={
+              <>
+                從第一堂課開始，
+                <br />
+                都是同一位教練。
+              </>
+            }
+            light
+          />
           <CoachCard />
         </div>
       </section>

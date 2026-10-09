@@ -462,18 +462,98 @@
   display: block;
 }
 
-.class-card__media .photo {
+/* ---------- Plan visual：課程方案的文字設計，取代照片 ---------- */
+.plan-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
   aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--charcoal);
+  color: #fff;
 }
 
-.class-card:hover .photo img {
-  transform: scale(1.05);
+.plan-visual--trial {
+  background: var(--green-strong);
 }
 
-.class-card__media .badge {
+.plan-visual--duo {
+  background: var(--charcoal-3);
+}
+
+.plan-visual__label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: clamp(56px, 6vw, 84px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+/* 大閃電當作背景紋理 */
+.plan-visual__bolt {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  right: 10%;
+  bottom: -16%;
+  width: auto;
+  height: 90%;
+  color: rgba(255, 255, 255, 0.08);
+  transform: rotate(8deg);
+  transition: transform 0.6s var(--ease);
+}
+
+.class-card:hover .plan-visual__bolt {
+  transform: rotate(8deg) translateY(-8px);
+}
+
+/* 課程介紹頁頂部：大字放右邊並淡化，不和左下的標題搶 */
+.plan-visual--hero {
+  place-items: center end;
+  padding-right: 8%;
+}
+
+.plan-visual--hero .plan-visual__label {
+  font-size: clamp(120px, 22vw, 280px);
+  opacity: 0.14;
+}
+
+/* 其他方案的小縮圖 */
+.other-plan__photo .plan-visual__label {
+  font-size: 26px;
+}
+
+.other-plan__photo .plan-visual__bolt {
+  display: none;
+}
+
+/* ---------- Coach placeholder：還沒有教練實拍照時的品牌圖案 ---------- */
+.coach-placeholder {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(92, 184, 96, 0.18), transparent 60%),
+    linear-gradient(135deg, var(--charcoal-3), var(--charcoal) 60%, #1c1d1f);
+}
+
+/* 用絕對定位置中，閃電的大小才不會反過來把區塊撐高 */
+.coach-placeholder__bolt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: auto;
+  height: min(30%, 96px);
+  color: var(--green-bright);
+  transform: translate(-50%, -50%);
+}
+
+/* 沒有照片時，教練卡片左邊的圖案區縮窄，把空間留給文字 */
+.coach-card--placeholder {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+}
+
+.coach-card--placeholder .coach-card__photo {
+  min-height: 0;
 }
 
 .class-card__body {
@@ -615,6 +695,11 @@
   .coach-card__photo {
     min-height: 0;
     aspect-ratio: 4 / 3;
+  }
+
+  /* 手機上的品牌圖案只是點綴，壓成一條橫幅就好 */
+  .coach-card--placeholder .coach-card__photo {
+    aspect-ratio: 16 / 5;
   }
 
   .coach-card__body {

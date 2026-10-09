@@ -1,14 +1,13 @@
 import { Link } from 'react-router-dom'
 import { formatPrice } from '../utils/booking'
 import Icon from './Icon'
-import Photo from './Photo'
+import PlanVisual from './PlanVisual'
 
 export default function ClassCard({ plan, showPrice = true }) {
   return (
     <article className="class-card">
       <Link to={`/classes/${plan.id}`} className="class-card__media" tabIndex={-1} aria-hidden="true">
-        <Photo src={plan.image} />
-        <span className={`badge badge--${plan.format}`}>{plan.formatLabel}</span>
+        <PlanVisual plan={plan} />
       </Link>
       <div className="class-card__body">
         <p className="class-card__en">{plan.en}</p>
