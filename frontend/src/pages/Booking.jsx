@@ -11,7 +11,7 @@ import { getPlan, weeklyOptions } from '../data/classes'
 import { SESSION_MINUTES } from '../data/schedule'
 import { SlotTakenError, submitBooking } from '../services/bookings'
 import { BOOKING_RANGE_DAYS, useSlots } from '../services/slots'
-import { BOOKING_STEPS, canBookSlot, getSlot, priceSummary, weeklyStartOptions } from '../utils/booking'
+import { BOOKING_STEPS, canBookSlot, getSlot, weeklyStartOptions } from '../utils/booking'
 import { addDays, addMinutes, formatDate, isValidISODate, isValidTime, todayISO, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
 import { clearDraft, loadDraft, saveDraft } from '../utils/storage'
 import { normalizePhone, validateInfo } from '../utils/validation'
@@ -243,7 +243,7 @@ export default function Booking() {
             {step === 4 && (
               <div className="step-panel">
                 <h2 className="step-panel__title">確認預約內容</h2>
-                <p className="step-panel__lead">請確認以下資訊無誤。送出後教練會在 24 小時內與你聯繫，套票方案與費用於上課當天現場確認。</p>
+                <p className="step-panel__lead">請確認以下資訊無誤。送出後教練會在 24 小時內透過電話或 LINE 與你確認。</p>
                 <BookingDetails booking={{ ...selection, goal: state.form.goal, contact: state.form, partners: state.form.partners.slice(0, partnerCount) }} />
                 <button type="button" className="text-btn" onClick={() => goTo(3)}>
                   修改聯絡資料
@@ -308,14 +308,6 @@ export default function Booking() {
                       <dd>{plan.capacity} 人</dd>
                     </div>
                   </dl>
-                  <div className="summary-total">
-                    <span>費用</span>
-                    <strong>
-                      {priceSummary(plan).amount}
-                      <small>{priceSummary(plan).unit}</small>
-                    </strong>
-                  </div>
-                  {!plan.free && <p className="summary-card__note">線上預約只保留時段，套票方案與費用於現場確認。</p>}
                 </>
               ) : (
                 <p className="hint">選擇方案後，這裡會顯示你的預約內容。</p>
