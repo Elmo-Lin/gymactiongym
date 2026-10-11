@@ -57,7 +57,7 @@ ${indexablePaths.map((url) => `  <url><loc>${SITE_URL}${url}</loc><lastmod>${tod
 fs.writeFileSync(path.join(dist, 'sitemap.xml'), sitemap)
 fs.writeFileSync(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nDisallow: /booking\nDisallow: /cart\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
+  `User-agent: *\nDisallow: /booking\nDisallow: /cart\nDisallow: /admin\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
 )
 
 fs.rmSync(ssrDir, { recursive: true, force: true })

@@ -1,0 +1,107 @@
+:root {
+  /* 木質調：亞麻紙底、胡桃木深棕、橡木、橄欖綠、陶土紅 */
+  --paper: #f3ebdf;
+  --paper-2: #eadcc8;
+  --surface: #fbf7f0;
+  --ink: #3a2a1f;
+  --ink-2: #6a5342;
+  --muted: #9a8572;
+  --rule: #e2d4c0;
+  --walnut: #5b3f2c;
+  --walnut-hover: #4a3223;
+  --oak: #b98a5a;
+  --oak-soft: #ecdcc6;
+  --leaf: #637346;
+  --clay: #b4532f;
+  --clay-soft: #f5e1d6;
+  --on-dark: #fbf5ea;
+  --shadow: 0 1px 0 rgba(91, 63, 44, 0.04), 0 6px 18px -8px rgba(91, 63, 44, 0.18);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.17 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  --sans: 'Noto Sans TC', -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --serif: 'Noto Serif TC', 'Songti TC', serif;
+  --num: 'Source Serif 4', 'Noto Serif TC', Georgia, serif;
+
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--grain), var(--paper);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1e1712;
+    --paper-2: #2b2119;
+    --surface: #271e17;
+    --ink: #f1e6d6;
+    --ink-2: #cdbba5;
+    --muted: #9d8a75;
+    --rule: #3b2f25;
+    --walnut: #d2a679;
+    --walnut-hover: #e0b88d;
+    --oak: #b8895a;
+    --oak-soft: #3a2c20;
+    --leaf: #a9b97e;
+    --clay: #e38360;
+    --clay-soft: #3d2219;
+    --on-dark: #1e1712;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+:focus-visible {
+  outline: 2px solid var(--oak);
+  outline-offset: 2px;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

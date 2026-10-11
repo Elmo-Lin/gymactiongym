@@ -18,7 +18,8 @@ public class CorsConfig implements WebMvcConfigurer {
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/api/**")
 				.allowedOrigins(allowedOrigins)
-				.allowedMethods("GET", "POST");
+				// PUT、PATCH 給教練後台使用；後台另外帶 Authorization 標頭（預設允許所有標頭）
+				.allowedMethods("GET", "POST", "PUT", "PATCH");
 	}
 
 }
