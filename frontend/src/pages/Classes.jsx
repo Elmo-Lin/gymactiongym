@@ -1,75 +1,44 @@
-import { useSearchParams } from 'react-router-dom'
-import Button from '../components/Button'
-import ClassCard from '../components/ClassCard'
+import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import SectionHeading from '../components/SectionHeading'
-import { corporatePlan, formatFilters, getPlan, plans, trainingGoals } from '../data/classes'
+import { corporatePlan, getPlan, trainingGoals } from '../data/classes'
 import { studioInfo } from '../data/schedule'
 import { formatPrice } from '../utils/booking'
 
 const solo = getPlan('one-on-one')
 const duo = getPlan('one-on-two')
 
+// 價目表標題旁的連結，連到方案介紹頁（課程內容、適合對象）
+function PlanLink({ plan }) {
+  return (
+    <Link to={`/classes/${plan.id}`} className="link-arrow price-table__link">
+      課程介紹
+      <Icon name="arrow" size={16} />
+    </Link>
+  )
+}
+
 export default function Classes() {
-  const [params, setParams] = useSearchParams()
-  const requested = params.get('type')
-  const filter = formatFilters.some((f) => f.value === requested) ? requested : 'all'
-  const visible = filter === 'all' ? plans : plans.filter((p) => p.format === filter)
-
-  const selectFilter = (value) => {
-    setParams(value === 'all' ? {} : { type: value }, { replace: true })
-  }
-
   return (
     <>
       <PageHeader eyebrow="Programs" title="課程方案">
-        所有課程皆為 60 分鐘、由同一位教練親自指導。依上課人數選擇方案，人數越多、每人費用越實惠。
+        所有課程皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
       </PageHeader>
 
-      <section className="section">
+      {/* id="pricing"：首頁方案卡片上的價格會連到這裡 */}
+      <section id="pricing" className="section section--snug section--anchor">
         <div className="container">
-          <div className="filters" role="tablist" aria-label="依上課人數篩選">
-            {formatFilters.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                role="tab"
-                aria-selected={filter === f.value}
-                className={`chip ${filter === f.value ? 'chip--active' : ''}`}
-                onClick={() => selectFilter(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+          <Link to="/classes/trial" className="link-arrow pricing-trial">
+            <span className="badge badge--trial">體驗</span>
+            第一次來？首次體驗課免費
+            <Icon name="arrow" size={16} />
+          </Link>
 
-          {visible.length > 0 ? (
-            <div className="card-grid card-grid--3">
-              {visible.map((plan) => (
-                <ClassCard key={plan.id} plan={plan} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty">
-              <Icon name="dumbbell" size={32} />
-              <h3>目前沒有符合條件的方案</h3>
-              <p>試試其他篩選條件，或直接查看全部方案。</p>
-              <Button variant="secondary" onClick={() => selectFilter('all')}>
-                顯示全部
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="section section--tint">
-        <div className="container">
-          <SectionHeading eyebrow="價目表" title="方案與費用一覽">
-            首次體驗課免費。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
-          </SectionHeading>
-
-          <h3 className="price-table__title">{solo.name}</h3>
+          <h3 className="price-table__title">
+            {solo.name}
+            <PlanLink plan={solo} />
+          </h3>
           <div className="table-wrap">
             <table className="compare">
               <thead>
@@ -87,14 +56,24 @@ export default function Classes() {
                 </tr>
               </thead>
               <tbody>
+                {/* data-label：手機版表格會變成卡片，用它顯示每個欄位的名稱 */}
                 {solo.packages.map((p) => (
                   <tr key={p.name}>
                     <th scope="row">{p.name}</th>
-                    <td>{p.sessions}</td>
-                    <td>{formatPrice(p.perSession)}</td>
-                    <td>{formatPrice(p.perSession * p.sessions)}</td>
-                    <td>{p.renewal ? formatPrice(p.renewal) : '—'}</td>
-                    <td>{p.renewal ? formatPrice(p.renewal * p.sessions) : '—'}</td>
+                    <td data-label="堂數">{p.sessions}</td>
+                    <td data-label="平均單堂">{formatPrice(p.perSession)}</td>
+                    <td data-label="總價">{formatPrice(p.perSession * p.sessions)}</td>
+                    {p.renewal ? (
+                      <>
+                        <td data-label="續約會員・平均單堂">{formatPrice(p.renewal)}</td>
+                        <td data-label="續約會員・總價">{formatPrice(p.renewal * p.sessions)}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="compare__empty">—</td>
+                        <td className="compare__empty">—</td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -106,6 +85,7 @@ export default function Classes() {
               <h3 className="price-table__title">
                 {duo.name}
                 <small>每位學員的價格</small>
+                <PlanLink plan={duo} />
               </h3>
               <div className="table-wrap">
                 <table className="compare compare--compact">
@@ -120,8 +100,8 @@ export default function Classes() {
                     {duo.packages.map((p) => (
                       <tr key={p.name}>
                         <th scope="row">{p.name}</th>
-                        <td>{formatPrice(p.perSession)}</td>
-                        <td>{formatPrice(p.perSession * p.sessions)}</td>
+                        <td data-label="平均單堂">{formatPrice(p.perSession)}</td>
+                        <td data-label="總價">{formatPrice(p.perSession * p.sessions)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -145,7 +125,7 @@ export default function Classes() {
                     {corporatePlan.tiers.map((t) => (
                       <tr key={t.people}>
                         <th scope="row">{t.people} 人</th>
-                        <td>{formatPrice(t.perPerson)}</td>
+                        <td data-label="每位每堂">{formatPrice(t.perPerson)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -159,7 +139,7 @@ export default function Classes() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section section--tint">
         <div className="container">
           <SectionHeading eyebrow="訓練目標" title="不論你的目標是什麼，課表都為你量身設計。" />
           <div className="goals">

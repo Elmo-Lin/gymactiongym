@@ -77,13 +77,6 @@ export const plans = [
   },
 ]
 
-export const formatFilters = [
-  { value: 'all', label: '全部' },
-  { value: 'solo', label: '1對1' },
-  { value: 'duo', label: '1對2' },
-  { value: 'trial', label: '體驗課' },
-]
-
 // 企業包班：不開放線上預約，請客戶直接聯絡。perPerson 為報名人數達到 people 時，每位學員每堂的價格
 export const corporatePlan = {
   name: '企業包班',

@@ -3,6 +3,17 @@
   padding-block: 112px;
 }
 
+/* 緊接在頁面標題下的第一個區塊：標題區已經有留白，上方不需要再留那麼多 */
+.section.section--snug {
+  padding-top: 48px;
+}
+
+@media (max-width: 640px) {
+  .section.section--snug {
+    padding-top: 36px;
+  }
+}
+
 .section--tint {
   background: var(--tint);
 }
@@ -455,11 +466,26 @@
 }
 
 /* ---------- Classes ---------- */
+/* 篩選按鈕（營養補給頁的商品分類使用） */
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 40px;
+}
+
+/* 用 #錨點捲過來的區塊，上方留出固定導覽列的高度，標題才不會被蓋住 */
+.section--anchor {
+  scroll-margin-top: var(--nav-h);
+}
+
+/* 方案卡片上的價格可以點，連到價目表 */
+a.price {
+  transition: color 0.2s;
+}
+
+a.price:hover {
+  color: var(--green-strong);
 }
 
 .table-wrap {
@@ -484,6 +510,16 @@
   font-size: 14px;
   font-weight: 400;
   color: var(--muted);
+}
+
+.price-table__link {
+  margin-left: auto;
+}
+
+/* 價目表最上面的體驗課連結 */
+.pricing-trial {
+  margin-bottom: 36px;
+  font-size: 16px;
 }
 
 .price-grid {
@@ -550,6 +586,64 @@
 
 .compare tbody tr:hover {
   background: var(--bg);
+}
+
+/* 手機版：不用左右滑，表格的每一列變成一張卡片，欄位名稱由 td 的 data-label 顯示 */
+@media (max-width: 640px) {
+  .compare {
+    min-width: 0;
+  }
+
+  .compare thead {
+    display: none;
+  }
+
+  .compare,
+  .compare tbody,
+  .compare tr,
+  .compare th,
+  .compare td {
+    display: block;
+  }
+
+  .compare tbody tr {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .compare tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .compare tbody th,
+  .compare td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .compare tbody th {
+    margin-bottom: 8px;
+    font-size: 17px;
+  }
+
+  .compare td {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 4px;
+  }
+
+  .compare td::before {
+    content: attr(data-label);
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  /* 沒有續約價的方案（單堂），手機上直接不顯示那兩格 */
+  .compare .compare__empty {
+    display: none;
+  }
 }
 
 .goals {

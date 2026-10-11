@@ -379,26 +379,26 @@
 .page-header__inner {
   position: relative;
   z-index: 1;
-  padding-block: 88px 80px;
+  padding-block: 40px;
 }
 
 .page-header h1 {
   color: #fff;
-  font-size: clamp(36px, 6vw, 64px);
+  font-size: clamp(32px, 5vw, 52px);
   letter-spacing: 0.04em;
 }
 
 .page-header__lead {
   max-width: 620px;
-  margin-top: 18px;
-  font-size: 18px;
+  margin-top: 12px;
+  font-size: 17px;
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.72);
 }
 
 @media (max-width: 720px) {
   .page-header__inner {
-    padding-block: 56px 52px;
+    padding-block: 32px;
   }
 
   .page-header__lead {
@@ -457,12 +457,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-.class-card__media {
-  position: relative;
-  display: block;
-}
-
-/* ---------- Plan visual：課程方案的文字設計，取代照片 ---------- */
+/* ---------- Plan visual：課程方案的文字設計（課程介紹頁頂部、其他方案縮圖） ---------- */
 .plan-visual {
   position: relative;
   display: grid;
@@ -501,10 +496,6 @@
   color: rgba(255, 255, 255, 0.08);
   transform: rotate(8deg);
   transition: transform 0.6s var(--ease);
-}
-
-.class-card:hover .plan-visual__bolt {
-  transform: rotate(8deg) translateY(-8px);
 }
 
 /* 課程介紹頁頂部：大字放右邊並淡化，不和左下的標題搶 */
@@ -561,7 +552,15 @@
   flex: 1;
   flex-direction: column;
   gap: 12px;
-  padding: 24px;
+  padding: 28px;
+}
+
+/* 卡片最上面：方案標籤（體驗、1對1、1對2）＋英文名稱 */
+.class-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .class-card__en {

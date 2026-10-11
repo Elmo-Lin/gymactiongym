@@ -1,16 +1,15 @@
 import { Link } from 'react-router-dom'
 import { priceSummary } from '../utils/booking'
 import Icon from './Icon'
-import PlanVisual from './PlanVisual'
 
 export default function ClassCard({ plan, showPrice = true }) {
   return (
     <article className="class-card">
-      <Link to={`/classes/${plan.id}`} className="class-card__media" tabIndex={-1} aria-hidden="true">
-        <PlanVisual plan={plan} />
-      </Link>
       <div className="class-card__body">
-        <p className="class-card__en">{plan.en}</p>
+        <div className="class-card__head">
+          <span className={`badge badge--${plan.format}`}>{plan.formatLabel}</span>
+          <p className="class-card__en">{plan.en}</p>
+        </div>
         <h3 className="class-card__title">
           <Link to={`/classes/${plan.id}`}>{plan.name}</Link>
         </h3>
@@ -27,10 +26,10 @@ export default function ClassCard({ plan, showPrice = true }) {
         <p className="class-card__desc">{plan.tagline}</p>
         <div className="class-card__footer">
           {showPrice && (
-            <p className="price">
+            <Link to="/classes#pricing" className="price" title="查看價目表">
               {priceSummary(plan).amount}
               <span>{priceSummary(plan).unit}</span>
-            </p>
+            </Link>
           )}
           <Link to={`/classes/${plan.id}`} className="link-arrow">
             查看方案
