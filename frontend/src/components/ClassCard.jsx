@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { formatPrice } from '../utils/booking'
+import { priceSummary } from '../utils/booking'
 import Icon from './Icon'
 import PlanVisual from './PlanVisual'
 
@@ -21,15 +21,15 @@ export default function ClassCard({ plan, showPrice = true }) {
           </li>
           <li>
             <Icon name="users" size={16} />
-            {plan.capacity === 1 ? '1 位學員' : `最多 ${plan.capacity} 位學員`}
+            {plan.capacity} 位學員
           </li>
         </ul>
         <p className="class-card__desc">{plan.tagline}</p>
         <div className="class-card__footer">
           {showPrice && (
             <p className="price">
-              {formatPrice(plan.price)}
-              <span>／每人每堂</span>
+              {priceSummary(plan).amount}
+              <span>{priceSummary(plan).unit}</span>
             </p>
           )}
           <Link to={`/classes/${plan.id}`} className="link-arrow">

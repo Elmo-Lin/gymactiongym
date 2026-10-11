@@ -4,10 +4,12 @@ import ClassCard from '../components/ClassCard'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import SectionHeading from '../components/SectionHeading'
-import { formatFilters, plans, trainingGoals, weeklyPackages } from '../data/classes'
+import { corporatePlan, formatFilters, getPlan, plans, trainingGoals } from '../data/classes'
+import { studioInfo } from '../data/schedule'
 import { formatPrice } from '../utils/booking'
 
-const groupPlans = plans.filter((p) => p.id !== 'trial')
+const solo = getPlan('one-on-one')
+const duo = getPlan('one-on-two')
 
 export default function Classes() {
   const [params, setParams] = useSearchParams()
@@ -63,39 +65,97 @@ export default function Classes() {
 
       <section className="section section--tint">
         <div className="container">
-          <SectionHeading eyebrow="價格比較" title="方案與費用一覽">
-            固定每週時段上課，8 週享 95 折、12 週享 9 折。
+          <SectionHeading eyebrow="價目表" title="方案與費用一覽">
+            首次體驗課免費。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
           </SectionHeading>
+
+          <h3 className="price-table__title">{solo.name}</h3>
           <div className="table-wrap">
             <table className="compare">
               <thead>
                 <tr>
                   <th scope="col">方案</th>
-                  <th scope="col">每人每堂</th>
-                  <th scope="col">每堂總費用</th>
-                  {weeklyPackages.map((p) => (
-                    <th scope="col" key={p.weeks}>
-                      {p.label}
-                      <small>{p.note}・每人</small>
-                    </th>
-                  ))}
+                  <th scope="col">堂數</th>
+                  <th scope="col">平均單堂</th>
+                  <th scope="col">總價</th>
+                  <th scope="col">
+                    平均單堂<small>續約會員</small>
+                  </th>
+                  <th scope="col">
+                    總價<small>續約會員</small>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {groupPlans.map((plan) => (
-                  <tr key={plan.id}>
-                    <th scope="row">{plan.name}</th>
-                    <td>{formatPrice(plan.price)}</td>
-                    <td>{formatPrice(plan.price * plan.capacity)}</td>
-                    {weeklyPackages.map((p) => (
-                      <td key={p.weeks}>{formatPrice(Math.round(plan.price * p.weeks * p.discount))}</td>
-                    ))}
+                {solo.packages.map((p) => (
+                  <tr key={p.name}>
+                    <th scope="row">{p.name}</th>
+                    <td>{p.sessions}</td>
+                    <td>{formatPrice(p.perSession)}</td>
+                    <td>{formatPrice(p.perSession * p.sessions)}</td>
+                    <td>{p.renewal ? formatPrice(p.renewal) : '—'}</td>
+                    <td>{p.renewal ? formatPrice(p.renewal * p.sessions) : '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="footnote">＊首次體驗課 {formatPrice(plans[0].price)}，限單人、單次預約。每個時段只服務一組學員，1對2 請和自己的朋友一起報名。</p>
+
+          <div className="price-grid">
+            <div>
+              <h3 className="price-table__title">
+                {duo.name}
+                <small>每位學員的價格</small>
+              </h3>
+              <div className="table-wrap">
+                <table className="compare compare--compact">
+                  <thead>
+                    <tr>
+                      <th scope="col">期班</th>
+                      <th scope="col">平均單堂</th>
+                      <th scope="col">總價</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {duo.packages.map((p) => (
+                      <tr key={p.name}>
+                        <th scope="row">{p.name}</th>
+                        <td>{formatPrice(p.perSession)}</td>
+                        <td>{formatPrice(p.perSession * p.sessions)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h3 className="price-table__title">
+                {corporatePlan.name}
+                <small>{corporatePlan.note}</small>
+              </h3>
+              <div className="table-wrap">
+                <table className="compare compare--compact">
+                  <thead>
+                    <tr>
+                      <th scope="col">報名人數</th>
+                      <th scope="col">每位每堂</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {corporatePlan.tiers.map((t) => (
+                      <tr key={t.people}>
+                        <th scope="row">{t.people} 人</th>
+                        <td>{formatPrice(t.perPerson)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <p className="footnote">
+            ＊價格以現場公告為準。每個時段只服務一組學員，1對2 請和自己的朋友一起報名；企業包班不開放線上預約，請透過 LINE {studioInfo.line} 洽詢。
+          </p>
         </div>
       </section>
 

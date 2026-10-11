@@ -1,5 +1,5 @@
 import { plans } from '../../data/classes'
-import { formatPrice } from '../../utils/booking'
+import { priceSummary } from '../../utils/booking'
 import { formatDate } from '../../utils/date'
 import Icon from '../Icon'
 
@@ -8,7 +8,7 @@ export default function PlanStep({ planId, presetSlot, onSelect }) {
     <div className="step-panel">
       <h2 className="step-panel__title">選擇上課方式</h2>
       <p className="step-panel__lead">
-        所有課程皆由同一位教練指導，每堂 60 分鐘。每個時段只服務你這一組，想找朋友一起上課就選 1對2。
+        所有課程皆由同一位教練指導，每堂 60 分鐘。每個時段只服務你這一組，想找朋友一起上課就選 1對2。線上預約只保留時段，套票方案與費用於現場確認。
       </p>
 
       {presetSlot && (
@@ -48,8 +48,8 @@ export default function PlanStep({ planId, presetSlot, onSelect }) {
                 </span>
               </span>
               <span className="plan-option__price">
-                {formatPrice(plan.price)}
-                <small>／每人每堂</small>
+                {priceSummary(plan).amount}
+                <small>{priceSummary(plan).unit}</small>
               </span>
             </button>
           )

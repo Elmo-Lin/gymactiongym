@@ -5,7 +5,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-// 欄位與前端 Booking.jsx 送出的預約資料相同，方便預約完成頁直接使用
+// 欄位與前端 Booking.jsx 送出的預約資料相同，方便預約完成頁直接使用。
+// 線上預約只保留時段，不記錄價格：套票與費用於現場確認
 public record Booking(
 		String reference,
 		String planId,
@@ -19,9 +20,7 @@ public record Booking(
 		String time,
 		String endTime,
 		int sessions,
-		double discount,
 		int people,
-		Price price,
 		BookingRequest.Contact contact,
 		List<String> partners,
 		String goal,
@@ -29,15 +28,12 @@ public record Booking(
 		String note,
 		Instant createdAt) {
 
-	public record Price(int perSession, int subtotal, int total, int saved) {
-	}
-
 	// 查詢預約時使用：遮住電話與 Email，並拿掉備註（可能有舊傷等健康資訊）
 	public Booking withMaskedContact() {
 		BookingRequest.Contact masked = new BookingRequest.Contact(contact.name(), Masking.phone(contact.phone()),
 				Masking.email(contact.email()));
-		return new Booking(reference, planId, mode, date, startDate, weeks, weekday, time, endTime, sessions, discount,
-				people, price, masked, partners, goal, experience, null, createdAt);
+		return new Booking(reference, planId, mode, date, startDate, weeks, weekday, time, endTime, sessions, people,
+				masked, partners, goal, experience, null, createdAt);
 	}
 
 }

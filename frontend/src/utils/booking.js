@@ -1,3 +1,4 @@
+import { startingPrice } from '../data/classes'
 import { CLOSED_WEEKDAYS, SESSION_MINUTES, weeklySchedule } from '../data/schedule'
 import { addDays, addMinutes, toDateTime, todayISO, weekdayOf } from './date'
 
@@ -90,14 +91,11 @@ export function getUpcomingAvailable(index, days = 7, limit = 6) {
   return result
 }
 
-export function calcPrice(plan, people, sessions, discount = 1) {
-  const perSession = plan.price * people
-  const subtotal = perSession * sessions
-  const total = Math.round(subtotal * discount)
-  return { perSession, subtotal, total, saved: subtotal - total }
-}
-
 export const formatPrice = (n) => `NT$${n.toLocaleString('en-US')}`
+
+// 方案卡片、方案介紹等處顯示的價格：體驗課顯示「免費」，其他顯示最低的平均單堂價
+export const priceSummary = (plan) =>
+  plan.free ? { amount: '免費', unit: '' } : { amount: `${formatPrice(startingPrice(plan))} 起`, unit: `／${plan.unit}` }
 
 export function generateReference() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'

@@ -1,4 +1,4 @@
-import { getPlan, weeklyPackages } from '../../data/classes'
+import { getPlan, weeklyOptions } from '../../data/classes'
 import { weeklySchedule } from '../../data/schedule'
 import { canBookSlot, getUpcomingDates, isClosedDay, slotsOn, STATUS_LABELS, weeklyStartOptions } from '../../utils/booking'
 import { formatDate, formatMonthDay, WEEK_ORDER, WEEKDAY_LABELS, WEEKDAY_SHORT, weekdayOf } from '../../utils/date'
@@ -50,7 +50,7 @@ export default function TimeStep({ state, update, slots }) {
             <Icon name="repeat" size={20} />
             <span>
               <strong>固定每週時段</strong>
-              <small>每週同一時間，最高享 9 折</small>
+              <small>一次預約連續幾週的同一時間</small>
             </span>
           </button>
         </div>
@@ -106,18 +106,17 @@ export default function TimeStep({ state, update, slots }) {
         </>
       ) : (
         <>
-          <h3 className="field-title">上課週數</h3>
+          <h3 className="field-title">先預約幾週</h3>
           <div className="package-options">
-            {weeklyPackages.map((p) => (
+            {weeklyOptions.map((weeks) => (
               <button
-                key={p.weeks}
+                key={weeks}
                 type="button"
-                className={`package ${state.weeks === p.weeks ? 'package--active' : ''}`}
-                onClick={() => update({ weeks: p.weeks, startDate: null })}
+                className={`package ${state.weeks === weeks ? 'package--active' : ''}`}
+                onClick={() => update({ weeks, startDate: null })}
               >
-                <strong>{p.label}</strong>
-                <span>共 {p.weeks} 堂</span>
-                <em>{p.note}</em>
+                <strong>{weeks} 週</strong>
+                <span>共 {weeks} 堂</span>
               </button>
             ))}
           </div>

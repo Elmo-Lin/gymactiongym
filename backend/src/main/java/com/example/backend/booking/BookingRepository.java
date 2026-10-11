@@ -88,8 +88,6 @@ public class BookingRepository {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> contact = (Map<String, Object>) doc.get("contact");
 		@SuppressWarnings("unchecked")
-		Map<String, Object> price = (Map<String, Object>) doc.get("price");
-		@SuppressWarnings("unchecked")
 		List<String> partners = (List<String>) doc.get("partners");
 
 		return Optional.of(new Booking(
@@ -103,10 +101,7 @@ public class BookingRepository {
 				doc.getString("time"),
 				doc.getString("endTime"),
 				toInteger(doc.get("sessions")),
-				doc.getDouble("discount"),
 				toInteger(doc.get("people")),
-				new Booking.Price(toInteger(price.get("perSession")), toInteger(price.get("subtotal")),
-						toInteger(price.get("total")), toInteger(price.get("saved"))),
 				new BookingRequest.Contact((String) contact.get("name"), (String) contact.get("phone"),
 						(String) contact.get("email")),
 				partners == null ? List.of() : partners,
@@ -131,12 +126,6 @@ public class BookingRepository {
 		contact.put("phone", booking.contact().phone());
 		contact.put("email", booking.contact().email());
 
-		Map<String, Object> price = new HashMap<>();
-		price.put("perSession", booking.price().perSession());
-		price.put("subtotal", booking.price().subtotal());
-		price.put("total", booking.price().total());
-		price.put("saved", booking.price().saved());
-
 		Map<String, Object> data = new HashMap<>();
 		data.put("planId", booking.planId());
 		data.put("mode", booking.mode());
@@ -149,9 +138,7 @@ public class BookingRepository {
 		data.put("sessions", booking.sessions());
 		// 方便教練在 Firebase Console 直接看到每一堂的日期
 		data.put("sessionDates", dates.stream().map(LocalDate::toString).toList());
-		data.put("discount", booking.discount());
 		data.put("people", booking.people());
-		data.put("price", price);
 		data.put("contact", contact);
 		data.put("partners", booking.partners());
 		data.put("goal", booking.goal());

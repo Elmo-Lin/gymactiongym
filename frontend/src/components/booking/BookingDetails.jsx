@@ -1,12 +1,13 @@
 import { coach } from '../../data/coach'
 import { trainingGoals } from '../../data/classes'
-import { formatPrice } from '../../utils/booking'
+import { priceSummary } from '../../utils/booking'
 import { addDays, formatDate, WEEKDAY_LABELS } from '../../utils/date'
 
-// 預約摘要與確認頁共用的明細
+// 預約摘要與確認頁共用的明細。線上預約只保留時段，費用依現場選擇的方案而定
 export default function BookingDetails({ booking, showContact = true }) {
-  const { plan, mode, people, price, sessions, discount } = booking
+  const { plan, mode, people, sessions } = booking
   const goal = trainingGoals.find((g) => g.id === booking.goal)
+  const price = priceSummary(plan)
 
   const rows = [
     ['課程方案', plan.name],
@@ -39,22 +40,16 @@ export default function BookingDetails({ booking, showContact = true }) {
         ))}
       </dl>
       <dl className="price-rows">
-        <div>
-          <dt>
-            {formatPrice(plan.price)} × {people} 人 × {sessions} 堂
-          </dt>
-          <dd>{formatPrice(price.subtotal)}</dd>
-        </div>
-        {price.saved > 0 && (
-          <div className="price-rows__discount">
-            <dt>固定時段優惠（{Math.round(discount * 100)} 折）</dt>
-            <dd>−{formatPrice(price.saved)}</dd>
-          </div>
-        )}
         <div className="price-rows__total">
-          <dt>應付金額</dt>
-          <dd>{formatPrice(price.total)}</dd>
+          <dt>費用</dt>
+          <dd>
+            {price.amount}
+            {price.unit}
+          </dd>
         </div>
+        {!plan.free && (
+          <p className="price-rows__note">單堂或套票方案（堂數越多越划算），於上課當天現場選擇並付款。</p>
+        )}
       </dl>
     </div>
   )

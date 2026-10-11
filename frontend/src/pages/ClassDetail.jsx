@@ -3,10 +3,10 @@ import Button from '../components/Button'
 import Icon from '../components/Icon'
 import CoachPhoto from '../components/CoachPhoto'
 import PlanVisual from '../components/PlanVisual'
-import { getPlan, plans, weeklyPackages } from '../data/classes'
+import { getPlan, plans } from '../data/classes'
 import { coach } from '../data/coach'
 import { useSlots } from '../services/slots'
-import { formatPrice, getUpcomingAvailable } from '../utils/booking'
+import { formatPrice, getUpcomingAvailable, priceSummary } from '../utils/booking'
 import { addDays, formatDate, todayISO } from '../utils/date'
 import NotFound from './NotFound'
 
@@ -102,41 +102,48 @@ export default function ClassDetail() {
           <aside className="detail__aside">
             <div className="summary-card">
               <p className="price price--lg">
-                {formatPrice(plan.price)}
-                <span>／每人每堂</span>
+                {priceSummary(plan).amount}
+                <span>{priceSummary(plan).unit}</span>
               </p>
               <dl className="facts">
                 <div>
                   <dt>上課人數</dt>
-                  <dd>{plan.capacity === 1 ? '1 人' : `${plan.capacity} 人`}</dd>
+                  <dd>{plan.capacity} 人</dd>
                 </div>
                 <div>
                   <dt>課程長度</dt>
                   <dd>{plan.duration} 分鐘</dd>
                 </div>
                 <div>
-                  <dt>每堂總費用</dt>
-                  <dd>{formatPrice(plan.price * plan.capacity)}</dd>
-                </div>
-                <div>
                   <dt>預約方式</dt>
                   <dd>{plan.singleOnly ? '單次預約' : '單次 / 固定每週'}</dd>
                 </div>
               </dl>
-              {!plan.singleOnly && (
-                <div className="package-mini">
-                  {weeklyPackages.map((p) => (
-                    <div key={p.weeks}>
-                      <span>固定 {p.label}</span>
-                      <strong>{p.note}</strong>
-                    </div>
+              {plan.packages && (
+                <ul className="price-list">
+                  {plan.packages.map((p) => (
+                    <li key={p.name}>
+                      <span>
+                        {p.name}
+                        <small>
+                          {p.sessions} 堂・共 {formatPrice(p.perSession * p.sessions)}
+                          {plan.capacity > 1 && '／位'}
+                        </small>
+                      </span>
+                      <strong>
+                        {formatPrice(p.perSession)}
+                        <small>{p.renewal ? `續約 ${formatPrice(p.renewal)}` : `／${plan.unit}`}</small>
+                      </strong>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
               <Button to={`/booking/${plan.id}`} size="lg" block arrow>
                 預約此課程
               </Button>
-              <p className="summary-card__note">線上預約不需付款，課程當天於現場付費。</p>
+              <p className="summary-card__note">
+                {plan.free ? '體驗課完全免費，不需付款。' : '線上預約只保留時段，方案與費用於上課當天現場確認。'}
+              </p>
             </div>
           </aside>
         </div>
@@ -152,7 +159,10 @@ export default function ClassDetail() {
                 <div>
                   <span className={`badge badge--${p.format}`}>{p.formatLabel}</span>
                   <strong>{p.name}</strong>
-                  <span>{formatPrice(p.price)}／每人每堂</span>
+                  <span>
+                    {priceSummary(p).amount}
+                    {priceSummary(p).unit}
+                  </span>
                 </div>
               </Link>
             ))}

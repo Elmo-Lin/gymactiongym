@@ -1,6 +1,8 @@
 // 課程方案，需與後端 Plan.java 保持一致。一位教練，最多同時指導兩位學員。
 // 每個時段只服務一組學員：1對2 的同行者是會員自己帶的朋友，不會和不認識的人一起上課。
-// 價格皆為「每人每堂」，固定時段方案依週數給予折扣。
+// 價格取自店內價目表（2026/10）。線上預約只保留時段，套票與續約價於現場購買。
+//   packages：可購買的方案，perSession 為平均單堂價；renewal 為續約會員的平均單堂價
+//   unit：價格的單位，1對2 為每位學員的價格
 export const plans = [
   {
     id: 'trial',
@@ -10,7 +12,7 @@ export const plans = [
     formatLabel: '體驗',
     capacity: 1,
     duration: 60,
-    price: 800,
+    free: true,
     tagline: '第一次來？從一堂完整的評估開始。',
     description:
       '教練會先了解你的運動習慣、生活作息與目標，再透過動作檢測找出身體的強項與需要加強的地方，最後帶你實際練一輪，讓你清楚知道接下來該怎麼練。',
@@ -31,7 +33,13 @@ export const plans = [
     formatLabel: '1對1',
     capacity: 1,
     duration: 60,
-    price: 1600,
+    unit: '堂',
+    packages: [
+      { name: '單堂方案', sessions: 1, perSession: 2000 },
+      { name: '入門方案', sessions: 12, perSession: 1890, renewal: 1780 },
+      { name: '進階方案', sessions: 24, perSession: 1680, renewal: 1580 },
+      { name: '卓越方案', sessions: 36, perSession: 1470, renewal: 1360 },
+    ],
     tagline: '整堂課的注意力都在你身上。',
     description:
       '完全依照你的身體狀況與目標設計課表，每一個動作都有教練即時修正。適合有明確目標、需要高度客製化，或有舊傷需要特別留意的學員。',
@@ -51,10 +59,14 @@ export const plans = [
     formatLabel: '1對2',
     capacity: 2,
     duration: 60,
-    price: 1000,
+    unit: '位・堂',
+    packages: [
+      { name: '8 堂期班', sessions: 8, perSession: 790 },
+      { name: '16 堂期班', sessions: 16, perSession: 750 },
+    ],
     tagline: '找個夥伴一起練，更容易堅持。',
     description:
-      '和朋友、伴侶或家人一起上課，教練依兩人的程度安排同主題、不同強度的訓練。有人陪伴更有動力，費用也更划算。',
+      '和朋友、伴侶或家人一起上課，教練依兩人的程度安排同主題、不同強度的訓練。以 8 堂或 16 堂為一期，有人陪伴更有動力，費用也更划算。',
     expect: [
       '兩人輪流進行主訓練，教練逐一指導',
       '依各自程度調整重量與動作變化',
@@ -72,12 +84,21 @@ export const formatFilters = [
   { value: 'trial', label: '體驗課' },
 ]
 
-// 固定每週時段的週數選項
-export const weeklyPackages = [
-  { weeks: 4, label: '4 週', discount: 1, note: '原價' },
-  { weeks: 8, label: '8 週', discount: 0.95, note: '95 折' },
-  { weeks: 12, label: '12 週', discount: 0.9, note: '9 折' },
-]
+// 企業包班：不開放線上預約，請客戶直接聯絡。perPerson 為報名人數達到 people 時，每位學員每堂的價格
+export const corporatePlan = {
+  name: '企業包班',
+  note: '2 人一組，適合公司同事一起報名',
+  tiers: [
+    { people: 10, perPerson: 590 },
+    { people: 20, perPerson: 550 },
+  ],
+}
+
+// 固定每週時段：一次預約連續幾週的同一時段（只是排課方式，不影響價格），需與後端 BookingService 一致
+export const weeklyOptions = [4, 8, 12]
+
+// 方案的起始價格（各方案中最低的平均單堂價），體驗課回傳 0
+export const startingPrice = (plan) => (plan.packages ? Math.min(...plan.packages.map((p) => p.perSession)) : 0)
 
 export const trainingGoals = [
   { id: 'muscle', label: '增肌', desc: '漸進式超負荷訓練，搭配飲食建議，穩定增加肌肉量。' },

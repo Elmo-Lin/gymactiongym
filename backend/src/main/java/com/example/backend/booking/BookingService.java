@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,9 @@ public class BookingService {
 	// 第一堂課最遠可以預約到幾天後
 	private static final int BOOKING_WINDOW_DAYS = 28;
 
-	// 每週固定的週數與折扣，需與前端 classes.js 的 weeklyPackages 一致
-	private static final Map<Integer, Double> WEEKLY_DISCOUNTS = Map.of(4, 1.0, 8, 0.95, 12, 0.9);
+	// 每週固定可以一次預約的週數，需與前端 classes.js 的 weeklyOptions 一致。
+	// 只是排課方式，不影響價格：線上預約只保留時段，套票與費用於現場確認
+	private static final Set<Integer> WEEKLY_OPTIONS = Set.of(4, 8, 12);
 
 	private final BookingRepository bookingRepository;
 
@@ -38,8 +39,7 @@ public class BookingService {
 			throw badRequest("這個方案只能單次預約");
 		}
 		int weeks = weekly ? (request.weeks() == null ? 0 : request.weeks()) : 1;
-		Double discount = weekly ? WEEKLY_DISCOUNTS.get(weeks) : Double.valueOf(1.0);
-		if (discount == null) {
+		if (weekly && !WEEKLY_OPTIONS.contains(weeks)) {
 			throw badRequest("每週固定只能選 4、8 或 12 週");
 		}
 		if (request.partners().size() != plan.capacity() - 1) {
@@ -69,12 +69,7 @@ public class BookingService {
 			}
 		}
 
-		// 4. 價格由後端計算：方案單價 × 人數 × 堂數 × 折扣
-		int people = plan.capacity();
-		int perSession = plan.price() * people;
-		int subtotal = perSession * weeks;
-		int total = (int) Math.round(subtotal * discount);
-
+		// 4. 時段由會員包下，上課人數就是方案人數（會員 + 自己帶的朋友）
 		Booking booking = new Booking(
 				ReferenceGenerator.generate("AG"),
 				plan.id(),
@@ -86,9 +81,7 @@ public class BookingService {
 				request.time(),
 				start.plusMinutes(WeeklySchedule.SESSION_MINUTES).toString(),
 				weeks,
-				discount,
-				people,
-				new Booking.Price(perSession, subtotal, total, subtotal - total),
+				plan.capacity(),
 				request.contact(),
 				request.partners(),
 				request.goal(),

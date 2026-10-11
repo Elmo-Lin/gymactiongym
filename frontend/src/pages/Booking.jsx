@@ -7,11 +7,11 @@ import TimeStep from '../components/booking/TimeStep'
 import Button from '../components/Button'
 import Icon from '../components/Icon'
 import StepIndicator from '../components/StepIndicator'
-import { getPlan, weeklyPackages } from '../data/classes'
+import { getPlan, weeklyOptions } from '../data/classes'
 import { SESSION_MINUTES } from '../data/schedule'
 import { SlotTakenError, submitBooking } from '../services/bookings'
 import { BOOKING_RANGE_DAYS, useSlots } from '../services/slots'
-import { BOOKING_STEPS, calcPrice, canBookSlot, formatPrice, getSlot, weeklyStartOptions } from '../utils/booking'
+import { BOOKING_STEPS, canBookSlot, getSlot, priceSummary, weeklyStartOptions } from '../utils/booking'
 import { addDays, addMinutes, formatDate, isValidISODate, isValidTime, todayISO, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
 import { clearDraft, loadDraft, saveDraft } from '../utils/storage'
 import { normalizePhone, validateInfo } from '../utils/validation'
@@ -78,28 +78,23 @@ function resolveSelection(state, slots) {
       endTime: slot.endTime,
       weekday: weekdayOf(state.date),
       sessions: 1,
-      discount: 1,
       people,
-      price: calcPrice(plan, people, 1),
     }
   }
 
   const { weekday, weeklyTime: time, startDate, weeks } = state
-  if (weekday == null || !time || !startDate) return null
+  if (weekday == null || !time || !startDate || !weeklyOptions.includes(weeks)) return null
   if (!weeklyStartOptions(slots, weekday, time, weeks).includes(startDate)) return null
-  const pkg = weeklyPackages.find((p) => p.weeks === weeks) ?? weeklyPackages[0]
   return {
     plan,
     mode,
     weekday,
     startDate,
-    weeks: pkg.weeks,
+    weeks,
     time,
     endTime: addMinutes(time, SESSION_MINUTES),
-    sessions: pkg.weeks,
-    discount: pkg.discount,
+    sessions: weeks,
     people,
-    price: calcPrice(plan, people, pkg.weeks, pkg.discount),
   }
 }
 
@@ -173,9 +168,7 @@ export default function Booking() {
       time: fresh.time,
       endTime: fresh.endTime,
       sessions: fresh.sessions,
-      discount: fresh.discount,
       people: fresh.people,
-      price: fresh.price,
       contact: { name: form.name.trim(), email: form.email.trim(), phone: normalizePhone(form.phone) },
       partners: form.partners.slice(0, partnerCount).map((p) => p.trim()),
       goal: form.goal,
@@ -250,7 +243,7 @@ export default function Booking() {
             {step === 4 && (
               <div className="step-panel">
                 <h2 className="step-panel__title">確認預約內容</h2>
-                <p className="step-panel__lead">請確認以下資訊無誤。送出後教練會在 24 小時內與你聯繫，課程費用於上課當天現場付款。</p>
+                <p className="step-panel__lead">請確認以下資訊無誤。送出後教練會在 24 小時內與你聯繫，套票方案與費用於上課當天現場確認。</p>
                 <BookingDetails booking={{ ...selection, goal: state.form.goal, contact: state.form, partners: state.form.partners.slice(0, partnerCount) }} />
                 <button type="button" className="text-btn" onClick={() => goTo(3)}>
                   修改聯絡資料
@@ -316,12 +309,16 @@ export default function Booking() {
                     </div>
                   </dl>
                   <div className="summary-total">
-                    <span>預估金額</span>
-                    <strong>{selection ? formatPrice(selection.price.total) : `${formatPrice(plan.price)} 起`}</strong>
+                    <span>費用</span>
+                    <strong>
+                      {priceSummary(plan).amount}
+                      <small>{priceSummary(plan).unit}</small>
+                    </strong>
                   </div>
+                  {!plan.free && <p className="summary-card__note">線上預約只保留時段，套票方案與費用於現場確認。</p>}
                 </>
               ) : (
-                <p className="hint">選擇方案後，這裡會顯示你的預約內容與費用。</p>
+                <p className="hint">選擇方案後，這裡會顯示你的預約內容。</p>
               )}
             </div>
           </aside>

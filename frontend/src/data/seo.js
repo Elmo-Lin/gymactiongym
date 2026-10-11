@@ -1,5 +1,5 @@
 import { coach } from './coach'
-import { getPlan, plans } from './classes'
+import { getPlan, plans, startingPrice } from './classes'
 import { images } from './images'
 import { studioInfo } from './schedule'
 
@@ -18,7 +18,7 @@ const pages = {
   '/classes': {
     title: `課程方案與價格・楊梅私人教練課${suffix}`,
     description:
-      '楊梅私人教練課程方案：首次體驗課、1對1 私人教練、1對2 雙人小班，每堂 60 分鐘，固定時段 8 週 95 折、12 週 9 折。',
+      '楊梅私人教練課程方案：首次體驗課免費，1對1 私人教練單堂 NT$2,000、12／24／36 堂套票平均單堂最低 NT$1,470，1對2 雙人小班每位 NT$750 起，另有企業包班。',
   },
   '/coach': {
     title: `${coach.name}・${coach.title}${suffix}`,
@@ -54,7 +54,7 @@ export function getSeo(pathname) {
     const plan = getPlan(classMatch[1])
     if (plan) {
       meta = {
-        title: `${plan.name}・NT$${plan.price.toLocaleString('en-US')} 起${suffix}`,
+        title: `${plan.name}・${plan.free ? '免費' : `NT$${startingPrice(plan).toLocaleString('en-US')} 起`}${suffix}`,
         description: `${plan.tagline}${plan.description}`.slice(0, 150),
       }
     }
@@ -76,7 +76,8 @@ const DAY_CODES = { 週一至週五: ['Monday', 'Tuesday', 'Wednesday', 'Thursda
 
 // Google 在地商家結構化資料（ExerciseGym）
 export function getBusinessJsonLd() {
-  const prices = plans.map((p) => p.price)
+  // 付費方案的平均單堂價範圍（不含免費體驗課）
+  const prices = plans.flatMap((p) => (p.packages ?? []).map((pkg) => pkg.perSession))
   return {
     '@context': 'https://schema.org',
     '@type': 'ExerciseGym',
