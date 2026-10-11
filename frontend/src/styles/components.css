@@ -342,6 +342,17 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+/* 給教練用的入口，刻意做得不顯眼 */
+.footer__admin {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.2s;
+}
+
+.footer__admin:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 @media (max-width: 960px) {
   .footer__grid {
     grid-template-columns: 1fr 1fr;

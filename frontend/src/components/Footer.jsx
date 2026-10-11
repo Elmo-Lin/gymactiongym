@@ -83,6 +83,10 @@ export default function Footer() {
       <div className="container footer__bottom">
         <p>© {new Date().getFullYear()} 即動 ACTION GYM. All rights reserved.</p>
         {!config.useApi && <p>本網站預約功能為示範版本，資料僅儲存於您的瀏覽器。</p>}
+        {/* 教練後台是另一個頁面（admin.html），用一般連結整頁開啟，不走網站內的換頁 */}
+        <a href="/admin" className="footer__admin" rel="nofollow">
+          教練登入
+        </a>
       </div>
     </footer>
   )
