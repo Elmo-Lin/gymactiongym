@@ -1,6 +1,7 @@
 package com.example.backend.admin;
 
 import com.example.backend.admin.CoachModels.AdminData;
+import com.example.backend.admin.CoachModels.ExercisesRequest;
 import com.example.backend.admin.CoachModels.ImportRequest;
 import com.example.backend.admin.CoachModels.Lesson;
 import com.example.backend.admin.CoachModels.LessonRequest;
@@ -12,6 +13,7 @@ import com.example.backend.admin.CoachModels.SessionResult;
 import com.example.backend.admin.CoachModels.Student;
 import com.example.backend.admin.CoachModels.StudentRequest;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -71,6 +73,11 @@ public class CoachController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Lesson addLesson(@Valid @RequestBody LessonRequest request) {
 		return coachRepository.addLesson(request);
+	}
+
+	@PutMapping("/exercises")
+	public List<String> saveExercises(@Valid @RequestBody ExercisesRequest request) {
+		return coachRepository.saveExercises(request.exercises());
 	}
 
 	@PatchMapping("/lessons/{id}")

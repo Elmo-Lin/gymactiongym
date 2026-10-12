@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EXERCISES, PLANS, TODAY } from '../data.js'
+import { PLANS, TODAY } from '../data.js'
 import { formatWeight, lastRecord, shortDate, topSet } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 
@@ -55,7 +55,66 @@ function Compare({ sets, last }) {
   return <span className="cmp">同上次</span>
 }
 
-export default function LogSession({ student, booking, onCancel, onSave }) {
+// 新增動作：從動作清單挑、輸入自訂動作，或管理清單（教練自己的動作清單，存在資料庫）
+function ExercisePicker({ library, available, adding, onPick, onCreate, onRemove }) {
+  const [newName, setNewName] = useState('')
+  const [managing, setManaging] = useState(false)
+
+  const create = (e) => {
+    e.preventDefault()
+    const name = newName.trim()
+    if (!name) return
+    onCreate(name)
+    setNewName('')
+  }
+
+  return (
+    <div className="ex-picker">
+      <select className="add-ex" value={adding} onChange={(e) => onPick(e.target.value)} aria-label="新增動作">
+        <option value="">+ 新增動作</option>
+        {available.map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+
+      <form className="ex-new" onSubmit={create}>
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          maxLength={30}
+          placeholder="清單裡沒有？輸入動作名稱"
+          aria-label="自訂動作名稱"
+        />
+        <button className="btn btn-line" type="submit" disabled={!newName.trim()}>
+          新增
+        </button>
+      </form>
+
+      <button type="button" className="text-btn" onClick={() => setManaging((v) => !v)}>
+        {managing ? '完成' : '管理動作清單'}
+      </button>
+      {managing && (
+        <>
+          <p className="muted ex-manage-hint">移除後只是不會出現在選單裡，以前的訓練紀錄不受影響。</p>
+          <ul className="ex-manage">
+            {library.map((n) => (
+              <li key={n}>
+                {n}
+                <button type="button" className="icon-btn subtle" aria-label={`從清單移除 ${n}`} onClick={() => onRemove(n)}>
+                  <Icon name="x" size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
+}
+
+export default function LogSession({ student, booking, library, onLibraryChange, onCancel, onSave }) {
   const [plan, setPlan] = useState(() => defaultPlan(student, booking))
   const [exercises, setExercises] = useState(() => PLANS[plan].map((n) => prefill(student, n)))
   const [note, setNote] = useState('')
@@ -116,7 +175,7 @@ export default function LogSession({ student, booking, onCancel, onSave }) {
   }
 
   const totalSets = exercises.reduce((n, e) => n + e.sets.length, 0)
-  const available = EXERCISES.filter((n) => !exercises.some((e) => e.name === n))
+  const available = library.filter((n) => !exercises.some((e) => e.name === n))
 
   return (
     <div className="page log-page">
@@ -210,19 +269,17 @@ export default function LogSession({ student, booking, onCancel, onSave }) {
         })}
       </div>
 
-      <select
-        className="add-ex"
-        value={adding}
-        onChange={(e) => addExercise(e.target.value)}
-        aria-label="新增動作"
-      >
-        <option value="">+ 新增動作</option>
-        {available.map((n) => (
-          <option key={n} value={n}>
-            {n}
-          </option>
-        ))}
-      </select>
+      <ExercisePicker
+        library={library}
+        available={available}
+        adding={adding}
+        onPick={addExercise}
+        onCreate={(name) => {
+          if (!library.includes(name)) onLibraryChange([...library, name])
+          if (!exercises.some((e) => e.name === name)) addExercise(name)
+        }}
+        onRemove={(name) => onLibraryChange(library.filter((n) => n !== name))}
+      />
 
       <label className="note-field">
         <span>備註</span>

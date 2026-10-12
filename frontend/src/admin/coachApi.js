@@ -1,5 +1,5 @@
 import { request } from '../utils/api'
-import { INITIAL_BOOKINGS, INITIAL_STUDENTS } from './data.js'
+import { EXERCISES, INITIAL_BOOKINGS, INITIAL_STUDENTS } from './data.js'
 
 // 教練後台的資料存取。畫面只呼叫這裡的方法，不需要知道資料存在哪裡：
 //   createDemoApi   靜態模式：資料只在記憶體，重新整理就回到示範資料（原本 coachlog 的行為）
@@ -9,27 +9,29 @@ import { INITIAL_BOOKINGS, INITIAL_STUDENTS } from './data.js'
 //   student：{ id, name, gender, age, goal, plans[], phone, note, total, remaining, history[] }
 //   session：{ id, date, plan, exercises: [{ name, sets: [{ weight, reps }] }], note }
 //   booking（教練排的課，後端叫 lesson，和客人的線上預約分開）：{ id, date, time, studentId, plan, done }
+//   exercises：教練的動作清單（記錄訓練時「新增動作」的選項），還沒改過時沿用 data.js 的 EXERCISES
 
 const newId = (prefix) => `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
 export function createDemoApi() {
   return {
     demo: true,
-    load: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS }),
-    importDemo: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS }),
+    load: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
+    importDemo: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
     createStudent: async (profile) => ({ ...profile, id: newId('s'), total: 0, remaining: 0, history: [] }),
     updateStudent: async (id, profile) => ({ ...profile, id }),
     addPackage: async () => null,
     logSession: async (studentId, session) => ({ session: { ...session, id: newId(`${studentId}-`) } }),
     addBooking: async (booking) => ({ ...booking, id: newId('b'), done: false }),
     moveBooking: async () => null,
+    saveExercises: async () => null,
   }
 }
 
 export function createRemoteApi(getToken) {
   const call = async (path, options = {}) => request(path, { ...options, token: await getToken() })
   // 後端把教練排的課叫 lessons，畫面沿用 coachlog 的 bookings
-  const toScreen = (data) => ({ students: data.students, bookings: data.lessons })
+  const toScreen = (data) => ({ students: data.students, bookings: data.lessons, exercises: data.exercises ?? EXERCISES })
 
   return {
     demo: false,
@@ -47,5 +49,6 @@ export function createRemoteApi(getToken) {
       }),
     addBooking: (booking) => call('/api/admin/lessons', { method: 'POST', body: booking }),
     moveBooking: (id, date) => call(`/api/admin/lessons/${id}`, { method: 'PATCH', body: { date } }),
+    saveExercises: (exercises) => call('/api/admin/exercises', { method: 'PUT', body: { exercises } }),
   }
 }

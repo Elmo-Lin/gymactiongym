@@ -1647,3 +1647,55 @@
 .profile-edit {
   margin-left: 12px;
 }
+
+/* 記錄訓練：新增動作、自訂動作、管理動作清單 */
+.ex-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ex-new {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.ex-new input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+}
+
+.ex-new input:focus {
+  border-color: var(--oak);
+}
+
+.ex-manage-hint {
+  font-size: 13px;
+}
+
+.ex-manage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ex-manage li {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+}

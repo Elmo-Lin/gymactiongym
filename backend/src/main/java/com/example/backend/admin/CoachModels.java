@@ -97,8 +97,12 @@ public final class CoachModels {
 	public record MoveLessonRequest(@NotNull @Pattern(regexp = DATE) String date) {
 	}
 
-	// 後台開啟時一次載入的全部資料
-	public record AdminData(List<Student> students, List<Lesson> lessons) {
+	// 後台開啟時一次載入的全部資料。exercises 為教練的動作清單，還沒改過時是 null（前端改用預設清單）
+	public record AdminData(List<Student> students, List<Lesson> lessons, List<String> exercises) {
+	}
+
+	// 儲存教練的動作清單（記錄訓練時「新增動作」的選項）
+	public record ExercisesRequest(@NotNull @Size(max = 100) List<@NotBlank @Size(max = 30) String> exercises) {
 	}
 
 	// 匯入 coachlog 的示範資料（只有資料庫裡還沒有學生時才允許）

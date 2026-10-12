@@ -18,6 +18,7 @@ const TABS = [
 export default function CoachApp({ api, user, onLogout }) {
   const [students, setStudents] = useState(null)
   const [bookings, setBookings] = useState([])
+  const [exercises, setExercises] = useState([])
   const [loadError, setLoadError] = useState(null)
   // route: { tab } 或 { tab, studentId } 或 { tab, studentId, log: true, bookingId } 或 { tab, form: 'new' | 'edit', studentId }
   const [route, setRoute] = useState({ tab: 'today' })
@@ -31,6 +32,7 @@ export default function CoachApp({ api, user, onLogout }) {
         (data) => {
           setStudents(data.students)
           setBookings(data.bookings)
+          setExercises(data.exercises)
           setLoadError(null)
         },
         (err) => setLoadError(err),
@@ -132,6 +134,7 @@ export default function CoachApp({ api, user, onLogout }) {
       const data = await api.importDemo()
       setStudents(data.students)
       setBookings(data.bookings)
+      setExercises(data.exercises)
       showToast(`已匯入 ${data.students.length} 位示範學生`)
     } catch {
       showToast('匯入失敗，請再試一次')
@@ -169,6 +172,12 @@ export default function CoachApp({ api, user, onLogout }) {
     })
   }
 
+  // 教練的動作清單：新增自訂動作或移除不用的動作，畫面先更新再存檔
+  const saveExercises = (list) => {
+    setExercises(list)
+    persist(api.saveExercises(list))
+  }
+
   const current = route.studentId && students.find((s) => s.id === route.studentId)
 
   let page
@@ -187,6 +196,8 @@ export default function CoachApp({ api, user, onLogout }) {
         key={current.id}
         student={current}
         booking={bookings.find((b) => b.id === route.bookingId)}
+        library={exercises}
+        onLibraryChange={saveExercises}
         onCancel={() => go({ tab: route.tab, studentId: current.id })}
         onSave={(session) => saveSession(current.id, session, route.bookingId)}
       />

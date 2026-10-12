@@ -37,6 +37,7 @@ import org.springframework.web.server.ResponseStatusException;
 //   students          學生基本資料與堂數
 //   trainingSessions  訓練紀錄（studentId 指向學生）
 //   lessons           教練排的課（和客人在網站上的預約 bookings 分開）
+//   coachSettings     後台設定，例如 coachSettings/exercises 存教練的動作清單
 @Repository
 public class CoachRepository {
 
@@ -57,11 +58,14 @@ public class CoachRepository {
 
 	private final CollectionReference lessons;
 
+	private final DocumentReference exercisesDoc;
+
 	public CoachRepository(Firestore firestore) {
 		this.firestore = firestore;
 		this.students = firestore.collection("students");
 		this.sessions = firestore.collection("trainingSessions");
 		this.lessons = firestore.collection("lessons");
+		this.exercisesDoc = firestore.collection("coachSettings").document("exercises");
 	}
 
 	public AdminData load() {
@@ -81,7 +85,21 @@ public class CoachRepository {
 				.sorted(Comparator.comparing((Lesson l) -> l.date() + l.time()))
 				.toList();
 
-		return new AdminData(studentList, lessonList);
+		return new AdminData(studentList, lessonList, loadExercises());
+	}
+
+	// 教練的動作清單；還沒儲存過時回傳 null，前端會使用預設清單
+	@SuppressWarnings("unchecked")
+	private List<String> loadExercises() {
+		DocumentSnapshot doc = await(exercisesDoc.get());
+		return doc.exists() ? (List<String>) doc.get("names") : null;
+	}
+
+	// 儲存動作清單：去掉前後空白與重複的名稱，保留原本的順序
+	public List<String> saveExercises(List<String> names) {
+		List<String> cleaned = names.stream().map(String::trim).filter((name) -> !name.isEmpty()).distinct().toList();
+		await(exercisesDoc.set(Map.of("names", cleaned, "updatedAt", Timestamp.now())));
+		return cleaned;
 	}
 
 	public Student createStudent(StudentRequest request) {
@@ -157,8 +175,11 @@ public class CoachRepository {
 		return lesson;
 	}
 
-	// 改期：已經記錄過訓練的課不能改
+	// 改期：已經記錄過訓練的課不能改，也不能改到今天以前（以台灣時間為準，不依賴瀏覽器的日期）
 	public Lesson moveLesson(String id, String date) {
+		if (LocalDate.parse(date).isBefore(LocalDate.now(SlotService.TAIPEI))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "不能改到今天以前");
+		}
 		DocumentReference ref = lessons.document(id);
 		return await(firestore.runTransaction((tx) -> {
 			DocumentSnapshot snapshot = tx.get(ref).get();
