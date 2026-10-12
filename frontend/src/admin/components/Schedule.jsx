@@ -65,6 +65,20 @@ function AddBooking({ students, date, onAdd, onClose }) {
   )
 }
 
+// 拖曳課程時出現在週曆左右兩側的換週區域：拖到星期一左邊或星期日右邊停一下就換週
+function WeekEdge({ dir, active }) {
+  return (
+    <div
+      className={`week-edge week-edge--${dir < 0 ? 'prev' : 'next'} ${active ? 'drop-over' : ''}`}
+      data-drop-nav={dir}
+      aria-hidden="true"
+    >
+      <Icon name={dir < 0 ? 'back' : 'next'} size={18} />
+      <span>{dir < 0 ? '上一週' : '下一週'}</span>
+    </div>
+  )
+}
+
 // 已記錄的課不能移動；也不能改到今天以前
 const canDrop = (booking, date) => !booking.done && date >= TODAY && date !== booking.date
 
@@ -75,6 +89,8 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
   const { drag, dragProps } = useBookingDrag({
     canDrop,
     onDrop: (booking, date) => onMoveBooking(booking.id, date),
+    // 拖到換週箭頭上停一下就換週，可以把課拖到其他週
+    onNavigate: (dir) => shiftWeek(dir),
   })
 
   // 拖曳中各個日期的狀態，用來標示可以／不能放
@@ -120,13 +136,23 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
           </h1>
         </div>
         <div className="head-actions">
-          <button className="icon-btn" onClick={() => shiftWeek(-1)} aria-label="上一週">
+          <button
+            className={`icon-btn ${drag ? 'drop-nav' : ''} ${drag?.nav === '-1' ? 'drop-over' : ''}`}
+            data-drop-nav="-1"
+            onClick={() => shiftWeek(-1)}
+            aria-label="上一週"
+          >
             <Icon name="back" />
           </button>
           <button className="text-btn" onClick={goThisWeek}>
             本週
           </button>
-          <button className="icon-btn" onClick={() => shiftWeek(1)} aria-label="下一週">
+          <button
+            className={`icon-btn ${drag ? 'drop-nav' : ''} ${drag?.nav === '1' ? 'drop-over' : ''}`}
+            data-drop-nav="1"
+            onClick={() => shiftWeek(1)}
+            aria-label="下一週"
+          >
             <Icon name="next" />
           </button>
           <button className="btn btn-ink" onClick={() => setAdding(true)}>
@@ -136,8 +162,8 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
       </header>
 
       <p className="drag-hint">
-        <span className="hint-wide">拖曳課程到其他天即可改期</span>
-        <span className="hint-narrow">長按課程，拖到上方日期即可改期</span>
+        <span className="hint-wide">拖曳課程到其他天即可改期；拖到上方箭頭停一下可以換週</span>
+        <span className="hint-narrow">長按課程，拖到上方日期即可改期；拖到箭頭停一下可以換週</span>
       </p>
 
       {adding && (
@@ -207,35 +233,39 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
         </ul>
       </section>
 
-      {/* 桌機：整週格狀 */}
-      <div className="week-grid">
-        {days.map((iso) => (
-          <div
-            key={iso}
-            data-drop-date={iso}
-            className={`week-col ${iso === TODAY ? 'today' : ''} ${dropClass(iso)}`}
-          >
-            <button className="week-col-head" onClick={() => setSelected(iso)}>
-              <span>{weekday(iso)}</span>
-              <strong className="num">{parseISO(iso).getDate()}</strong>
-            </button>
-            {onDay(iso).map((b) => {
-              const s = byId[b.studentId]
-              return (
-                <button
-                  key={b.id}
-                  className={`slot ${b.done ? 'done' : 'draggable'} ${isDragging(b) ? 'dragging' : ''}`}
-                  onClick={() => (b.done || b.date > TODAY ? onOpen(s.id) : onLog(s.id, b.id))}
-                  {...draggable(b)}
-                >
-                  <span className="slot-time num">{b.time}</span>
-                  <strong>{s.name}</strong>
-                  <span className="muted">{b.plan.replace('訓練', '')}</span>
-                </button>
-              )
-            })}
-          </div>
-        ))}
+      {/* 桌機：整週格狀；拖曳時左右兩側出現換週區域 */}
+      <div className="week-wrap">
+        {drag && <WeekEdge dir={-1} active={drag.nav === '-1'} />}
+        {drag && <WeekEdge dir={1} active={drag.nav === '1'} />}
+        <div className="week-grid">
+          {days.map((iso) => (
+            <div
+              key={iso}
+              data-drop-date={iso}
+              className={`week-col ${iso === TODAY ? 'today' : ''} ${dropClass(iso)}`}
+            >
+              <button className="week-col-head" onClick={() => setSelected(iso)}>
+                <span>{weekday(iso)}</span>
+                <strong className="num">{parseISO(iso).getDate()}</strong>
+              </button>
+              {onDay(iso).map((b) => {
+                const s = byId[b.studentId]
+                return (
+                  <button
+                    key={b.id}
+                    className={`slot ${b.done ? 'done' : 'draggable'} ${isDragging(b) ? 'dragging' : ''}`}
+                    onClick={() => (b.done || b.date > TODAY ? onOpen(s.id) : onLog(s.id, b.id))}
+                    {...draggable(b)}
+                  >
+                    <span className="slot-time num">{b.time}</span>
+                    <strong>{s.name}</strong>
+                    <span className="muted">{b.plan.replace('訓練', '')}</span>
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </div>
 
       {drag && (

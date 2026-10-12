@@ -1699,3 +1699,66 @@
   background: var(--surface);
   font-size: 14px;
 }
+
+/* 拖曳課程時，換週箭頭也是放置目標：虛線提示可以拖過來，停在上面時加深 */
+.icon-btn.drop-nav {
+  border-color: var(--oak);
+  border-style: dashed;
+}
+
+.icon-btn.drop-over {
+  background: var(--oak-soft);
+  border: 2px solid var(--oak);
+  color: var(--walnut);
+}
+
+/* 拖曳課程時，週曆左右兩側的換週區域（星期一左邊、星期日右邊）；手機仍用上方箭頭 */
+.week-wrap {
+  position: relative;
+}
+
+.week-edge {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .week-edge {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 44px;
+    border: 1.5px dashed var(--oak);
+    background: color-mix(in srgb, var(--oak-soft) 88%, transparent);
+    color: var(--walnut);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .week-edge span {
+    writing-mode: vertical-rl;
+    letter-spacing: 0.2em;
+  }
+
+  .week-edge--prev {
+    left: 0;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .week-edge--next {
+    right: 0;
+    border-radius: 0 16px 16px 0;
+  }
+
+  .week-edge.drop-over {
+    border-style: solid;
+    background: var(--oak);
+    color: var(--on-dark);
+  }
+}
