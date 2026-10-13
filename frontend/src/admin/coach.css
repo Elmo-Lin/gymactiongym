@@ -1875,18 +1875,63 @@
   color: var(--on-dark);
 }
 
-.stepper-value {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  line-height: 1.15;
+/* 有 PR 的動作多一欄 %；手機寬度不夠，先藏起「上次」欄（上次的數字已經帶入，日期在標題旁） */
+.set-grid.with-pct {
+  grid-template-columns: 16px 44px 64px 1fr 1fr 24px;
 }
 
-.stepper-value small {
-  font-size: 11px;
+.pct-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--oak-soft);
+  border: 1px solid transparent;
+  color: var(--walnut);
+  cursor: text;
+}
+
+.pct-input:focus-within {
+  border-color: var(--oak);
+}
+
+.pct-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  outline: none;
+  text-align: right;
+  font-size: 17px;
   font-weight: 600;
-  color: var(--oak);
+  color: var(--walnut);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pct-input input::-webkit-outer-spin-button,
+.pct-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pct-input span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .set-grid.with-pct {
+    grid-template-columns: 16px 56px 1fr 1fr 24px;
+  }
+
+  .set-grid.with-pct .set-prev,
+  .set-grid.with-pct .set-prev-label {
+    display: none;
+  }
 }
 
 .log-ex dd small.pct {

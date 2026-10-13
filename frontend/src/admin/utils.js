@@ -55,6 +55,12 @@ export function percentOf(weight, pr) {
 
 export const roundTo = (value, step) => Math.round(value / step) * step
 
+// 一組的 %：教練指定的 %（set.pct）換算後就是現在的重量時，顯示教練指定的數字；
+// 不然顯示實際換算的 %（例如 PR 105 的 65% 會四捨五入成 67.5 kg，仍然顯示 65%）
+export function setPercent(set, pr, step) {
+  return set.pct && roundTo((pr * set.pct) / 100, step) === set.weight ? set.pct : percentOf(set.weight, pr)
+}
+
 // 一個動作的「最佳組」：重量最重，同重量取次數最多
 export function topSet(sets) {
   return sets.reduce((best, s) =>

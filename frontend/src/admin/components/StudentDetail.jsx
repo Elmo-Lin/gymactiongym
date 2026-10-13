@@ -190,7 +190,7 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
                       <div key={e.name}>
                         <dt>{e.name}</dt>
                         <dd className="num">
-                          {e.pr > 0 && <small className="pct">{percentOf(best.weight, e.pr)}% </small>}
+                          {e.pr > 0 && <small className="pct">{best.pct ?? percentOf(best.weight, e.pr)}% </small>}
                           {formatWeight(best.weight)} × {best.reps}
                           <small> ×{e.sets.length}組</small>
                         </dd>

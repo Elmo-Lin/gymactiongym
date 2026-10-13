@@ -65,7 +65,8 @@ public final class CoachModels {
 			@Positive @Max(1000) Double pr) {
 	}
 
-	public record ExerciseSet(@PositiveOrZero @Max(1000) double weight, @Min(0) @Max(1000) int reps) {
+	// pct 是這組用了 PR 的幾 %（教練指定的數字，重量是換算後四捨五入的結果）；沒有 PR 的動作是 null
+	public record ExerciseSet(@PositiveOrZero @Max(1000) double weight, @Min(0) @Max(1000) int reps, @Min(1) @Max(200) Integer pct) {
 	}
 
 	// 教練排的課（和客人在網站上的預約分開存）。done 表示已經記錄過訓練

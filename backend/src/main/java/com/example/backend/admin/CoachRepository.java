@@ -308,9 +308,15 @@ public class CoachRepository {
 
 	private static Map<String, Object> sessionMap(String studentId, TrainingSession session) {
 		List<Map<String, Object>> exercises = session.exercises().stream().map((exercise) -> {
-			List<Map<String, Object>> sets = exercise.sets().stream()
-					.map((set) -> Map.<String, Object>of("weight", set.weight(), "reps", set.reps()))
-					.toList();
+			List<Map<String, Object>> sets = exercise.sets().stream().map((set) -> {
+				Map<String, Object> data = new HashMap<>();
+				data.put("weight", set.weight());
+				data.put("reps", set.reps());
+				if (set.pct() != null) {
+					data.put("pct", set.pct());
+				}
+				return data;
+			}).toList();
 			Map<String, Object> data = new HashMap<>();
 			data.put("name", exercise.name());
 			data.put("sets", sets);
@@ -338,7 +344,8 @@ public class CoachRepository {
 					List<Map<String, Object>> sets = (List<Map<String, Object>>) exercise.get("sets");
 					Number pr = (Number) exercise.get("pr");
 					return new Exercise((String) exercise.get("name"), sets.stream()
-							.map((set) -> new ExerciseSet(((Number) set.get("weight")).doubleValue(), intValue(set.get("reps"))))
+							.map((set) -> new ExerciseSet(((Number) set.get("weight")).doubleValue(), intValue(set.get("reps")),
+									set.get("pct") == null ? null : intValue(set.get("pct"))))
 							.toList(), pr == null ? null : pr.doubleValue());
 				}).toList(),
 				doc.getString("note"));

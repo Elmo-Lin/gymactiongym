@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { PLANS, TODAY } from '../data.js'
-import { currentPr, formatWeight, lastRecord, percentOf, roundTo, shortDate, topSet } from '../utils.js'
+import { currentPr, formatWeight, lastRecord, roundTo, setPercent, shortDate, topSet } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 
 const LIGHT = ['弓箭步', '二頭彎舉']
@@ -12,9 +12,13 @@ const PERCENTS = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
 function prefill(student, name) {
   const last = lastRecord(student, name)
   const pr = currentPr(student, name)?.weight
-  const scale = (w) => (pr && last.pr && last.pr !== pr ? roundTo((w * pr) / last.pr, stepFor(name)) : w)
+  const step = stepFor(name)
+  const scale = (s) => {
+    if (!pr || !last.pr || last.pr === pr) return s.weight
+    return roundTo((pr * (s.pct ?? (s.weight / last.pr) * 100)) / 100, step)
+  }
   const sets = last
-    ? last.sets.map((s) => ({ ...s, weight: scale(s.weight) }))
+    ? last.sets.map((s) => ({ ...s, weight: scale(s) }))
     : [1, 2, 3].map(() => ({ weight: 20, reps: 10 }))
   return { name, sets }
 }
@@ -26,23 +30,20 @@ function defaultPlan(student, booking) {
   return student.plans[(idx + 1) % student.plans.length]
 }
 
-function Stepper({ value, step, onChange, label, hint }) {
+function Stepper({ value, step, onChange, label }) {
   return (
     <div className="stepper">
       <button type="button" aria-label={`${label}減少`} onClick={() => onChange(Math.max(0, value - step))}>
         <Icon name="minus" size={16} />
       </button>
-      <span className="stepper-value">
-        <input
-          className="num"
-          type="number"
-          inputMode="decimal"
-          value={value}
-          aria-label={label}
-          onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
-        />
-        {hint && <small className="num">{hint}</small>}
-      </span>
+      <input
+        className="num"
+        type="number"
+        inputMode="decimal"
+        value={value}
+        aria-label={label}
+        onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
+      />
       <button type="button" aria-label={`${label}增加`} onClick={() => onChange(value + step)}>
         <Icon name="plus" size={16} />
       </button>
@@ -64,6 +65,35 @@ function Compare({ sets, last }) {
   return <span className="cmp">同上次</span>
 }
 
+// 一組的 % 欄：輸入 % 就換算成 kg；kg 改了，這裡也跟著顯示新的 %。
+// 輸入中先保留教練打的數字，不然打「60」時，打到「6」就會被換算後的結果蓋掉
+function PercentInput({ set, pr, step, label, onChange }) {
+  const [draft, setDraft] = useState(null)
+  const shown = setPercent(set, pr, step)
+  return (
+    <label className="pct-input">
+      <input
+        className="num"
+        type="number"
+        inputMode="numeric"
+        aria-label={label}
+        value={draft ?? shown}
+        onFocus={(e) => {
+          setDraft(String(shown))
+          e.target.select()
+        }}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          const pct = Math.round(Number(e.target.value))
+          if (pct > 0 && pct <= 200) onChange(roundTo((pr * pct) / 100, step), pct)
+        }}
+        onBlur={() => setDraft(null)}
+      />
+      <span>%</span>
+    </label>
+  )
+}
+
 // 有 PR 的動作：按 % 把每一組都換算成 PR 的幾 %（依動作的加重單位四捨五入）
 function PercentPicker({ pr, sets, step, onPick }) {
   const weightFor = (p) => roundTo((pr.weight * p) / 100, step)
@@ -80,7 +110,7 @@ function PercentPicker({ pr, sets, step, onPick }) {
             type="button"
             className={`num${active === p ? ' active' : ''}`}
             aria-pressed={active === p}
-            onClick={() => onPick(weightFor(p))}
+            onClick={() => onPick(weightFor(p), p)}
           >
             {p}%
           </button>
@@ -185,8 +215,18 @@ export default function LogSession({ student, booking, library, onLibraryChange,
       ),
     )
 
-  const setAllWeights = (ei, weight) =>
-    setExercises((list) => list.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((s) => ({ ...s, weight })) })))
+  const setAllWeights = (ei, weight, pct) =>
+    setExercises((list) =>
+      list.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((s) => ({ ...s, weight, pct })) })),
+    )
+
+  // 用 % 欄設定一組的重量，同時記住教練指定的 %
+  const setSetPercent = (ei, si, weight, pct) =>
+    setExercises((list) =>
+      list.map((e, i) =>
+        i !== ei ? e : { ...e, sets: e.sets.map((s, j) => (j === si ? { ...s, weight, pct } : s)) },
+      ),
+    )
 
   const removeExercise = (ei) => setExercises((list) => list.filter((_, i) => i !== ei))
 
@@ -204,11 +244,17 @@ export default function LogSession({ student, booking, library, onLibraryChange,
       id: `${student.id}-${Date.now()}`,
       date: TODAY,
       plan,
-      // 有 PR 的動作一起存下當時的 PR，之後 PR 更新了，這筆紀錄的 % 也不會變
+      // 有 PR 的動作一起存下當時的 PR 和每組的 %，之後 PR 更新了，這筆紀錄的 % 也不會變
       exercises: exercises
         .map((e) => {
           const pr = currentPr(student, e.name)
-          return { ...e, sets: e.sets.filter((s) => s.reps > 0), ...(pr && { pr: pr.weight }) }
+          const sets = e.sets
+            .filter((s) => s.reps > 0)
+            .map((s) => {
+              const set = { weight: s.weight, reps: s.reps }
+              return pr ? { ...set, pct: setPercent(s, pr.weight, stepFor(e.name)) } : set
+            })
+          return { ...e, sets, ...(pr && { pr: pr.weight }) }
         })
         .filter((e) => e.sets.length > 0),
       note: note.trim(),
@@ -262,9 +308,10 @@ export default function LogSession({ student, booking, library, onLibraryChange,
                 <PercentPicker pr={pr} sets={e.sets} step={stepFor(e.name)} onPick={(w) => setAllWeights(ei, w)} />
               )}
 
-              <div className="set-grid">
+              <div className={`set-grid${pr ? ' with-pct' : ''}`}>
                 <span className="set-label">組</span>
-                <span className="set-label">上次</span>
+                <span className="set-label set-prev-label">上次</span>
+                {pr && <span className="set-label center">% PR</span>}
                 <span className="set-label center">kg</span>
                 <span className="set-label center">次</span>
                 <span />
@@ -276,11 +323,19 @@ export default function LogSession({ student, booking, library, onLibraryChange,
                       <span className="set-prev num">
                         {prev ? `${formatWeight(prev.weight)}×${prev.reps}` : '—'}
                       </span>
+                      {pr && (
+                        <PercentInput
+                          label={`第 ${si + 1} 組 PR 百分比`}
+                          set={s}
+                          pr={pr.weight}
+                          step={stepFor(e.name)}
+                          onChange={(weight, pct) => setSetPercent(ei, si, weight, pct)}
+                        />
+                      )}
                       <Stepper
                         label={`第 ${si + 1} 組重量`}
                         value={s.weight}
                         step={stepFor(e.name)}
-                        hint={pr && `${percentOf(s.weight, pr.weight)}%`}
                         onChange={(v) => updateSet(ei, si, 'weight', v)}
                       />
                       <Stepper
