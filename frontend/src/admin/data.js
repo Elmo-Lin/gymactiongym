@@ -1,7 +1,7 @@
 // Demo 用假資料：全部存在記憶體，重新整理頁面就會回到初始狀態
 
 export const EXERCISES = [
-  '深蹲', '硬舉', '羅馬尼亞硬舉', '臀推', '弓箭步', '腿推',
+  '深蹲', '硬舉', '架上硬舉', '羅馬尼亞硬舉', '臀推', '弓箭步', '腿推',
   '臥推', '肩推', '划船', '滑輪下拉', '引體向上', '二頭彎舉',
 ]
 
@@ -89,9 +89,24 @@ function buildHistory(student, index) {
   return sessions
 }
 
+// 測驗出來的 PR：[學生, 動作, 重量, 幾天前]
+const PR_SEED = [
+  ['s1', '深蹲', 100, 40],
+  ['s1', '深蹲', 105, 6],
+  ['s1', '臥推', 65, 6],
+  ['s5', '深蹲', 140, 20],
+  ['s5', '臥推', 95, 20],
+  ['s5', '架上硬舉', 170, 20],
+]
+
 export const INITIAL_STUDENTS = STUDENT_SEED.map((s, i) => {
   const student = { ...s, id: `s${i + 1}` }
   student.history = buildHistory(student, i)
+  student.prs = PR_SEED.filter(([id]) => id === student.id).map(([, exercise, weight, daysAgo]) => ({
+    exercise,
+    weight,
+    date: addDays(TODAY, -daysAgo),
+  }))
   return student
 })
 

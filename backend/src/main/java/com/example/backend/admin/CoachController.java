@@ -8,6 +8,7 @@ import com.example.backend.admin.CoachModels.LessonRequest;
 import com.example.backend.admin.CoachModels.MoveLessonRequest;
 import com.example.backend.admin.CoachModels.PackageRequest;
 import com.example.backend.admin.CoachModels.PackageResult;
+import com.example.backend.admin.CoachModels.PersonalRecord;
 import com.example.backend.admin.CoachModels.SessionRequest;
 import com.example.backend.admin.CoachModels.SessionResult;
 import com.example.backend.admin.CoachModels.Student;
@@ -61,6 +62,11 @@ public class CoachController {
 	@PostMapping("/students/{id}/packages")
 	public PackageResult addPackage(@PathVariable String id, @Valid @RequestBody PackageRequest request) {
 		return coachRepository.addPackage(id, request.count());
+	}
+
+	@PostMapping("/students/{id}/prs")
+	public List<PersonalRecord> savePr(@PathVariable String id, @Valid @RequestBody PersonalRecord request) {
+		return coachRepository.savePr(id, request);
 	}
 
 	@PostMapping("/students/{id}/sessions")

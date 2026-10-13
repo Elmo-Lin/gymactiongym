@@ -1,15 +1,21 @@
 import { useState } from 'react'
 import { PLANS, TODAY } from '../data.js'
-import { formatWeight, lastRecord, shortDate, topSet } from '../utils.js'
+import { currentPr, formatWeight, lastRecord, percentOf, roundTo, shortDate, topSet } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 
 const LIGHT = ['弓箭步', '二頭彎舉']
 const stepFor = (name) => (LIGHT.includes(name) ? 1 : 2.5)
+const PERCENTS = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
 
-// 預設帶入學生上次做這個動作的重量與次數，教練只需微調
+// 預設帶入學生上次做這個動作的重量與次數，教練只需微調。
+// 上次之後 PR 有更新的話，依上次用的 % 換算成新 PR 的重量
 function prefill(student, name) {
   const last = lastRecord(student, name)
-  const sets = last ? last.sets.map((s) => ({ ...s })) : [1, 2, 3].map(() => ({ weight: 20, reps: 10 }))
+  const pr = currentPr(student, name)?.weight
+  const scale = (w) => (pr && last.pr && last.pr !== pr ? roundTo((w * pr) / last.pr, stepFor(name)) : w)
+  const sets = last
+    ? last.sets.map((s) => ({ ...s, weight: scale(s.weight) }))
+    : [1, 2, 3].map(() => ({ weight: 20, reps: 10 }))
   return { name, sets }
 }
 
@@ -20,20 +26,23 @@ function defaultPlan(student, booking) {
   return student.plans[(idx + 1) % student.plans.length]
 }
 
-function Stepper({ value, step, onChange, label }) {
+function Stepper({ value, step, onChange, label, hint }) {
   return (
     <div className="stepper">
       <button type="button" aria-label={`${label}減少`} onClick={() => onChange(Math.max(0, value - step))}>
         <Icon name="minus" size={16} />
       </button>
-      <input
-        className="num"
-        type="number"
-        inputMode="decimal"
-        value={value}
-        aria-label={label}
-        onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
-      />
+      <span className="stepper-value">
+        <input
+          className="num"
+          type="number"
+          inputMode="decimal"
+          value={value}
+          aria-label={label}
+          onChange={(e) => onChange(Math.max(0, Number(e.target.value)))}
+        />
+        {hint && <small className="num">{hint}</small>}
+      </span>
       <button type="button" aria-label={`${label}增加`} onClick={() => onChange(value + step)}>
         <Icon name="plus" size={16} />
       </button>
@@ -53,6 +62,32 @@ function Compare({ sets, last }) {
   if (now.weight < before.weight || now.reps < before.reps)
     return <span className="cmp">減量</span>
   return <span className="cmp">同上次</span>
+}
+
+// 有 PR 的動作：按 % 把每一組都換算成 PR 的幾 %（依動作的加重單位四捨五入）
+function PercentPicker({ pr, sets, step, onPick }) {
+  const weightFor = (p) => roundTo((pr.weight * p) / 100, step)
+  const active = sets.length ? PERCENTS.find((p) => sets.every((s) => s.weight === weightFor(p))) : null
+  return (
+    <div className="pct-picker">
+      <span className="pct-pr num">
+        PR {formatWeight(pr.weight)} kg<small> · {shortDate(pr.date)} 測</small>
+      </span>
+      <div className="pct-chips">
+        {PERCENTS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            className={`num${active === p ? ' active' : ''}`}
+            aria-pressed={active === p}
+            onClick={() => onPick(weightFor(p))}
+          >
+            {p}%
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 // 新增動作：從動作清單挑、輸入自訂動作，或管理清單（教練自己的動作清單，存在資料庫）
@@ -150,6 +185,9 @@ export default function LogSession({ student, booking, library, onLibraryChange,
       ),
     )
 
+  const setAllWeights = (ei, weight) =>
+    setExercises((list) => list.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((s) => ({ ...s, weight })) })))
+
   const removeExercise = (ei) => setExercises((list) => list.filter((_, i) => i !== ei))
 
   const addExercise = (name) => {
@@ -166,8 +204,12 @@ export default function LogSession({ student, booking, library, onLibraryChange,
       id: `${student.id}-${Date.now()}`,
       date: TODAY,
       plan,
+      // 有 PR 的動作一起存下當時的 PR，之後 PR 更新了，這筆紀錄的 % 也不會變
       exercises: exercises
-        .map((e) => ({ ...e, sets: e.sets.filter((s) => s.reps > 0) }))
+        .map((e) => {
+          const pr = currentPr(student, e.name)
+          return { ...e, sets: e.sets.filter((s) => s.reps > 0), ...(pr && { pr: pr.weight }) }
+        })
         .filter((e) => e.sets.length > 0),
       note: note.trim(),
     })
@@ -207,6 +249,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
       <div className="ex-list">
         {exercises.map((e, ei) => {
           const last = lastRecord(student, e.name)
+          const pr = currentPr(student, e.name)
           return (
             <section className="ex" key={e.name}>
               <div className="ex-head">
@@ -214,6 +257,10 @@ export default function LogSession({ student, booking, library, onLibraryChange,
                 <Compare sets={e.sets} last={last} />
                 {last && <span className="ex-last num">上次 {shortDate(last.date)}</span>}
               </div>
+
+              {pr && (
+                <PercentPicker pr={pr} sets={e.sets} step={stepFor(e.name)} onPick={(w) => setAllWeights(ei, w)} />
+              )}
 
               <div className="set-grid">
                 <span className="set-label">組</span>
@@ -233,6 +280,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
                         label={`第 ${si + 1} 組重量`}
                         value={s.weight}
                         step={stepFor(e.name)}
+                        hint={pr && `${percentOf(s.weight, pr.weight)}%`}
                         onChange={(v) => updateSet(ei, si, 'weight', v)}
                       />
                       <Stepper

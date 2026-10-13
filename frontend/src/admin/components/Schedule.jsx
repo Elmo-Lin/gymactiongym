@@ -65,7 +65,7 @@ function AddBooking({ students, date, onAdd, onClose }) {
   )
 }
 
-// 拖曳課程時出現在週曆左右兩側的換週區域：拖到星期一左邊或星期日右邊停一下就換週
+// 拖曳課程時出現在週曆左右外側的換週區域：拖到星期一左邊或星期日右邊停一下就換週
 function WeekEdge({ dir, active }) {
   return (
     <div
@@ -162,7 +162,7 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
       </header>
 
       <p className="drag-hint">
-        <span className="hint-wide">拖曳課程到其他天即可改期；拖到上方箭頭停一下可以換週</span>
+        <span className="hint-wide">拖曳課程到其他天即可改期；拖到週曆左右兩側停一下可以換週</span>
         <span className="hint-narrow">長按課程，拖到上方日期即可改期；拖到箭頭停一下可以換週</span>
       </p>
 

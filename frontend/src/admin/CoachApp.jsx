@@ -110,11 +110,27 @@ export default function CoachApp({ api, user, onLogout }) {
     persist(api.addPackage(studentId, count))
   }
 
+  // PR：同一個動作同一天只留一筆，再輸入一次就蓋過（和後端的規則相同）
+  const savePr = (studentId, pr) => {
+    setStudents((list) =>
+      list.map((s) => {
+        if (s.id !== studentId) return s
+        const others = (s.prs ?? []).filter((p) => !(p.exercise === pr.exercise && p.date === pr.date))
+        return { ...s, prs: [...others, pr].sort((a, b) => a.date.localeCompare(b.date)) }
+      }),
+    )
+    const student = students.find((s) => s.id === studentId)
+    showToast(`已更新 ${student.name} 的${pr.exercise} PR：${pr.weight} kg`)
+    persist(api.savePr(studentId, pr))
+  }
+
   const saveStudent = async (profile) => {
     try {
       if (route.form === 'edit') {
         const updated = await api.updateStudent(route.studentId, profile)
-        setStudents((list) => list.map((s) => (s.id === route.studentId ? { ...s, ...updated, history: s.history } : s)))
+        setStudents((list) =>
+          list.map((s) => (s.id === route.studentId ? { ...s, ...updated, history: s.history, prs: s.prs } : s)),
+        )
         showToast(`已更新 ${profile.name} 的資料`)
         go({ tab: route.tab, studentId: route.studentId })
       } else {
@@ -212,6 +228,8 @@ export default function CoachApp({ api, user, onLogout }) {
         onLog={() => startLog(current.id)}
         onEdit={() => go({ tab: route.tab, studentId: current.id, form: 'edit' })}
         onAddPackage={(n) => addPackage(current.id, n)}
+        library={exercises}
+        onSavePr={(pr) => savePr(current.id, pr)}
       />
     )
   } else if (students.length === 0) {

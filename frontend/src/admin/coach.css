@@ -1712,7 +1712,8 @@
   color: var(--walnut);
 }
 
-/* 拖曳課程時，週曆左右兩側的換週區域（星期一左邊、星期日右邊）；手機仍用上方箭頭 */
+/* 拖曳課程時，週曆左右外側的換週區域（星期一左邊、星期日右邊），放在週曆外面才不會蓋住課程；
+   電腦版的內容區左右至少有 40px 留白。手機仍用上方箭頭 */
 .week-wrap {
   position: relative;
 }
@@ -1732,7 +1733,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 44px;
+    width: 36px;
     border: 1.5px dashed var(--oak);
     background: color-mix(in srgb, var(--oak-soft) 88%, transparent);
     color: var(--walnut);
@@ -1747,13 +1748,13 @@
   }
 
   .week-edge--prev {
-    left: 0;
-    border-radius: 16px 0 0 16px;
+    left: -40px;
+    border-radius: 12px;
   }
 
   .week-edge--next {
-    right: 0;
-    border-radius: 0 16px 16px 0;
+    right: -40px;
+    border-radius: 12px;
   }
 
   .week-edge.drop-over {
@@ -1761,4 +1762,134 @@
     background: var(--oak);
     color: var(--on-dark);
   }
+}
+
+/* 學生表單：「注意事項」和上方訓練內容按鈕之間留點距離 */
+.tabs + .note-field {
+  margin-top: 20px;
+}
+
+/* ---------- PR 與 % ---------- */
+.pr-list .pr-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pr-value {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--walnut);
+}
+
+.pr-value small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pr-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 40px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.pr-meta b {
+  color: var(--clay);
+}
+
+.pr-meta b.up {
+  color: var(--leaf);
+}
+
+.pr-form {
+  margin-top: 4px;
+}
+
+.pr-form .form-grid {
+  margin-bottom: 8px;
+}
+
+.pr-form-title {
+  grid-column: 1 / -1;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--walnut);
+}
+
+.pr-form-hint {
+  font-size: 12px;
+}
+
+.pr-form .btn-row {
+  margin-top: 12px;
+}
+
+.pct-picker {
+  margin-bottom: 10px;
+}
+
+.pct-pr {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.pct-pr small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.pct-chips {
+  display: flex;
+  gap: 6px;
+  margin: 6px -16px 0;
+  padding: 0 16px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pct-chips button {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.pct-chips button:hover {
+  border-color: var(--oak);
+}
+
+.pct-chips button.active {
+  background: var(--walnut);
+  border-color: var(--walnut);
+  color: var(--on-dark);
+}
+
+.stepper-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.stepper-value small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--oak);
+}
+
+.log-ex dd small.pct {
+  color: var(--oak);
+  font-weight: 600;
 }

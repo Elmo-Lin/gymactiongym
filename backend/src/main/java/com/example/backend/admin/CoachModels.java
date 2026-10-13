@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -25,6 +26,7 @@ public final class CoachModels {
 	static final String PLAN = "下肢訓練|上肢訓練|全身訓練";
 
 	// 學生。total 為累計購買堂數，remaining 為剩餘堂數；history 為訓練紀錄（依日期排序）
+	// prs 為測驗出來的 PR（依日期排序，保留每一次），記錄訓練時用來換算 %
 	public record Student(
 			String id,
 			String name,
@@ -36,7 +38,15 @@ public final class CoachModels {
 			String note,
 			int total,
 			int remaining,
-			List<TrainingSession> history) {
+			List<TrainingSession> history,
+			List<PersonalRecord> prs) {
+	}
+
+	// 某個動作的 PR（最大重量）。同一個動作同一天只會有一筆，再輸入一次就會蓋過
+	public record PersonalRecord(
+			@NotBlank @Size(max = 30) String exercise,
+			@Positive @Max(1000) double weight,
+			@NotNull @Pattern(regexp = DATE) String date) {
 	}
 
 	// 一次訓練紀錄
@@ -48,7 +58,11 @@ public final class CoachModels {
 			@Size(max = 500) String note) {
 	}
 
-	public record Exercise(@NotBlank @Size(max = 30) String name, @NotEmpty @Size(max = 20) List<@Valid ExerciseSet> sets) {
+	// pr 是記錄當下這個動作的 PR（沒有 PR 的動作是 null），之後 PR 更新了，舊紀錄的 % 仍然正確
+	public record Exercise(
+			@NotBlank @Size(max = 30) String name,
+			@NotEmpty @Size(max = 20) List<@Valid ExerciseSet> sets,
+			@Positive @Max(1000) Double pr) {
 	}
 
 	public record ExerciseSet(@PositiveOrZero @Max(1000) double weight, @Min(0) @Max(1000) int reps) {

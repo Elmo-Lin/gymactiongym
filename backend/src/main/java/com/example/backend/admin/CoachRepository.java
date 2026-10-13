@@ -9,6 +9,7 @@ import com.example.backend.admin.CoachModels.ImportRequest;
 import com.example.backend.admin.CoachModels.Lesson;
 import com.example.backend.admin.CoachModels.LessonRequest;
 import com.example.backend.admin.CoachModels.PackageResult;
+import com.example.backend.admin.CoachModels.PersonalRecord;
 import com.example.backend.admin.CoachModels.SessionRequest;
 import com.example.backend.admin.CoachModels.SessionResult;
 import com.example.backend.admin.CoachModels.Student;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 // 教練後台的資料，存在三個集合：
-//   students          學生基本資料與堂數
+//   students          學生基本資料、堂數與 PR
 //   trainingSessions  訓練紀錄（studentId 指向學生）
 //   lessons           教練排的課（和客人在網站上的預約 bookings 分開）
 //   coachSettings     後台設定，例如 coachSettings/exercises 存教練的動作清單
@@ -139,6 +140,27 @@ public class CoachRepository {
 		}));
 	}
 
+	// 新增或更新 PR：同一個動作同一天已經有紀錄就蓋過（輸入錯了再輸入一次即可），回傳這位學生全部的 PR
+	public List<PersonalRecord> savePr(String studentId, PersonalRecord request) {
+		if (LocalDate.parse(request.date()).isAfter(LocalDate.now(SlotService.TAIPEI))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PR 日期不能是未來");
+		}
+		PersonalRecord record = new PersonalRecord(request.exercise().trim(), request.weight(), request.date());
+		DocumentReference ref = students.document(studentId);
+		return await(firestore.runTransaction((tx) -> {
+			DocumentSnapshot snapshot = tx.get(ref).get();
+			if (!snapshot.exists()) {
+				throw notFound("找不到這位學生");
+			}
+			List<PersonalRecord> prs = new ArrayList<>(toPrs(snapshot));
+			prs.removeIf((pr) -> pr.exercise().equals(record.exercise()) && pr.date().equals(record.date()));
+			prs.add(record);
+			prs.sort(Comparator.comparing(PersonalRecord::date));
+			tx.update(ref, "prs", prs.stream().map(CoachRepository::prMap).toList());
+			return prs;
+		}));
+	}
+
 	// 記錄訓練：在同一個 transaction 裡新增紀錄、扣 1 堂（最少到 0）、把對應的課標記為已記錄
 	public SessionResult logSession(String studentId, SessionRequest request) {
 		DocumentReference studentRef = students.document(studentId);
@@ -210,6 +232,7 @@ public class CoachRepository {
 					student.goal(), student.plans(), student.phone(), student.note()));
 			data.put("total", student.total());
 			data.put("remaining", student.remaining());
+			data.put("prs", student.prs() == null ? List.of() : student.prs().stream().map(CoachRepository::prMap).toList());
 			// 依匯入的順序排列：每位學生的建立時間相差 1 毫秒
 			data.put("createdAt", Timestamp.ofTimeMicroseconds((now + i) * 1000));
 			batch.set(students.document(safeId(student.id())), data);
@@ -258,7 +281,7 @@ public class CoachRepository {
 
 	private static Student toStudent(String id, StudentRequest request, int total, int remaining) {
 		return new Student(id, request.name(), request.gender(), request.age(), request.goal(), request.plans(),
-				request.phone(), request.note(), total, remaining, List.of());
+				request.phone(), request.note(), total, remaining, List.of(), List.of());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -267,7 +290,20 @@ public class CoachRepository {
 		List<String> plans = (List<String>) doc.get("plans");
 		return new Student(doc.getId(), doc.getString("name"), doc.getString("gender"), age == null ? null : age.intValue(),
 				doc.getString("goal"), plans == null ? List.of() : plans, doc.getString("phone"), doc.getString("note"),
-				intValue(doc.get("total")), intValue(doc.get("remaining")), history);
+				intValue(doc.get("total")), intValue(doc.get("remaining")), history, toPrs(doc));
+	}
+
+	private static Map<String, Object> prMap(PersonalRecord pr) {
+		return Map.of("exercise", pr.exercise(), "weight", pr.weight(), "date", pr.date());
+	}
+
+	@SuppressWarnings("unchecked")
+	private static List<PersonalRecord> toPrs(DocumentSnapshot doc) {
+		List<Map<String, Object>> prs = (List<Map<String, Object>>) doc.get("prs");
+		return prs == null ? List.of() : prs.stream()
+				.map((pr) -> new PersonalRecord((String) pr.get("exercise"), ((Number) pr.get("weight")).doubleValue(),
+						(String) pr.get("date")))
+				.toList();
 	}
 
 	private static Map<String, Object> sessionMap(String studentId, TrainingSession session) {
@@ -275,7 +311,13 @@ public class CoachRepository {
 			List<Map<String, Object>> sets = exercise.sets().stream()
 					.map((set) -> Map.<String, Object>of("weight", set.weight(), "reps", set.reps()))
 					.toList();
-			return Map.<String, Object>of("name", exercise.name(), "sets", sets);
+			Map<String, Object> data = new HashMap<>();
+			data.put("name", exercise.name());
+			data.put("sets", sets);
+			if (exercise.pr() != null) {
+				data.put("pr", exercise.pr());
+			}
+			return data;
 		}).toList();
 
 		Map<String, Object> data = new HashMap<>();
@@ -294,9 +336,10 @@ public class CoachRepository {
 		return new TrainingSession(doc.getId(), doc.getString("date"), doc.getString("plan"),
 				exercises == null ? List.of() : exercises.stream().map((exercise) -> {
 					List<Map<String, Object>> sets = (List<Map<String, Object>>) exercise.get("sets");
+					Number pr = (Number) exercise.get("pr");
 					return new Exercise((String) exercise.get("name"), sets.stream()
 							.map((set) -> new ExerciseSet(((Number) set.get("weight")).doubleValue(), intValue(set.get("reps"))))
-							.toList());
+							.toList(), pr == null ? null : pr.doubleValue());
 				}).toList(),
 				doc.getString("note"));
 	}

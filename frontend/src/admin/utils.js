@@ -25,15 +25,35 @@ export function relativeDate(iso) {
   return shortDate(iso)
 }
 
-// 找出學生某個動作最近一次的紀錄
+// 找出學生某個動作最近一次的紀錄；pr 是當時的 PR（沒有就是 undefined）
 export function lastRecord(student, exerciseName) {
   for (let i = student.history.length - 1; i >= 0; i--) {
     const session = student.history[i]
     const ex = session.exercises.find((e) => e.name === exerciseName)
-    if (ex) return { date: session.date, sets: ex.sets }
+    if (ex) return { date: session.date, sets: ex.sets, pr: ex.pr }
   }
   return null
 }
+
+// 每個動作最新的 PR，以及前一次的 PR（用來顯示進步多少）：[{ exercise, weight, date, previous }]
+export function latestPrs(student) {
+  const byExercise = new Map()
+  for (const pr of student.prs ?? []) {
+    byExercise.set(pr.exercise, { ...pr, previous: byExercise.get(pr.exercise) })
+  }
+  return [...byExercise.values()]
+}
+
+export function currentPr(student, exerciseName) {
+  return latestPrs(student).find((pr) => pr.exercise === exerciseName) ?? null
+}
+
+// 重量是 PR 的幾 %
+export function percentOf(weight, pr) {
+  return Math.round((weight / pr) * 100)
+}
+
+export const roundTo = (value, step) => Math.round(value / step) * step
 
 // 一個動作的「最佳組」：重量最重，同重量取次數最多
 export function topSet(sets) {

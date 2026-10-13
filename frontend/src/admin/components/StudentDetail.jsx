@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { TODAY } from '../data.js'
-import { formatWeight, relativeDate, shortDate, topSet, weekday } from '../utils.js'
+import { formatWeight, percentOf, relativeDate, shortDate, topSet, weekday } from '../utils.js'
+import PrBlock from './PrBlock.jsx'
 import ProgressChart from './ProgressChart.jsx'
 import { Icon, Remaining } from './ui.jsx'
 
-export default function StudentDetail({ student, bookings, onBack, onLog, onEdit, onAddPackage }) {
+export default function StudentDetail({ student, bookings, library, onBack, onLog, onEdit, onAddPackage, onSavePr }) {
   const counts = {}
   student.history.forEach((s) => s.exercises.forEach((e) => (counts[e.name] = (counts[e.name] || 0) + 1)))
   const exerciseNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
@@ -141,6 +142,8 @@ export default function StudentDetail({ student, bookings, onBack, onLog, onEdit
             </div>
           </section>
 
+          <PrBlock student={student} library={library} onSave={onSavePr} />
+
           <section className="block">
             <div className="block-head">
               <h2>接下來</h2>
@@ -187,6 +190,7 @@ export default function StudentDetail({ student, bookings, onBack, onLog, onEdit
                       <div key={e.name}>
                         <dt>{e.name}</dt>
                         <dd className="num">
+                          {e.pr > 0 && <small className="pct">{percentOf(best.weight, e.pr)}% </small>}
                           {formatWeight(best.weight)} × {best.reps}
                           <small> ×{e.sets.length}組</small>
                         </dd>

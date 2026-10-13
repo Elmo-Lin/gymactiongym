@@ -6,8 +6,9 @@ import { EXERCISES, INITIAL_BOOKINGS, INITIAL_STUDENTS } from './data.js'
 //   createRemoteApi dev／上線模式：透過後端讀寫 Firestore，每次呼叫都帶上教練登入的 token
 //
 // 資料格式（與 coachlog 相同）：
-//   student：{ id, name, gender, age, goal, plans[], phone, note, total, remaining, history[] }
-//   session：{ id, date, plan, exercises: [{ name, sets: [{ weight, reps }] }], note }
+//   student：{ id, name, gender, age, goal, plans[], phone, note, total, remaining, history[], prs[] }
+//   session：{ id, date, plan, exercises: [{ name, sets: [{ weight, reps }], pr? }], note }
+//   pr：{ exercise, weight, date }，測驗出來的最大重量；exercise 上的 pr 是記錄當下的 PR，用來換算 %
 //   booking（教練排的課，後端叫 lesson，和客人的線上預約分開）：{ id, date, time, studentId, plan, done }
 //   exercises：教練的動作清單（記錄訓練時「新增動作」的選項），還沒改過時沿用 data.js 的 EXERCISES
 
@@ -18,9 +19,10 @@ export function createDemoApi() {
     demo: true,
     load: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
     importDemo: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
-    createStudent: async (profile) => ({ ...profile, id: newId('s'), total: 0, remaining: 0, history: [] }),
+    createStudent: async (profile) => ({ ...profile, id: newId('s'), total: 0, remaining: 0, history: [], prs: [] }),
     updateStudent: async (id, profile) => ({ ...profile, id }),
     addPackage: async () => null,
+    savePr: async () => null,
     logSession: async (studentId, session) => ({ session: { ...session, id: newId(`${studentId}-`) } }),
     addBooking: async (booking) => ({ ...booking, id: newId('b'), done: false }),
     moveBooking: async () => null,
@@ -42,6 +44,7 @@ export function createRemoteApi(getToken) {
     createStudent: (profile) => call('/api/admin/students', { method: 'POST', body: profile }),
     updateStudent: (id, profile) => call(`/api/admin/students/${id}`, { method: 'PUT', body: profile }),
     addPackage: (id, count) => call(`/api/admin/students/${id}/packages`, { method: 'POST', body: { count } }),
+    savePr: (id, pr) => call(`/api/admin/students/${id}/prs`, { method: 'POST', body: pr }),
     logSession: (studentId, session, bookingId) =>
       call(`/api/admin/students/${studentId}/sessions`, {
         method: 'POST',
