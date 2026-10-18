@@ -10,14 +10,19 @@ export const CLOSED_WEEKDAYS = []
 // 並同步修改後端 WeeklySchedule.java
 const open = (time) => ({ time, type: 'open' })
 
+// 平日：營業時間 07:00 – 21:00 內每個整點一堂（07:00 … 20:00）
+const WEEKDAY_TIMES = Array.from({ length: 14 }, (_, i) => `${String(7 + i).padStart(2, '0')}:00`)
+// 週末：09:00 – 17:00，12:00 午休
+const WEEKEND_TIMES = ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00']
+
 export const weeklySchedule = {
-  1: ['07:00', '08:00', '10:00', '11:00', '14:00', '16:00', '18:00', '19:00', '20:00'].map(open),
-  2: ['07:00', '09:00', '10:00', '14:00', '15:00', '18:00', '19:00', '20:00'].map(open),
-  3: ['07:00', '08:00', '10:00', '11:00', '15:00', '16:00', '18:00', '19:00', '20:00'].map(open),
-  4: ['07:00', '09:00', '10:00', '14:00', '15:00', '18:00', '19:00', '20:00'].map(open),
-  5: ['07:00', '08:00', '10:00', '11:00', '14:00', '18:00', '19:00', '20:00'].map(open),
-  6: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'].map(open),
-  0: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'].map(open),
+  1: WEEKDAY_TIMES.map(open),
+  2: WEEKDAY_TIMES.map(open),
+  3: WEEKDAY_TIMES.map(open),
+  4: WEEKDAY_TIMES.map(open),
+  5: WEEKDAY_TIMES.map(open),
+  6: WEEKEND_TIMES.map(open),
+  0: WEEKEND_TIMES.map(open),
 }
 
 export const studioInfo = {

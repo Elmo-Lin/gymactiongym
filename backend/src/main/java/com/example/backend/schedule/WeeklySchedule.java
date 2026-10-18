@@ -23,15 +23,21 @@ public final class WeeklySchedule {
 		return Arrays.stream(times).map((time) -> new Entry(time, false)).toList();
 	}
 
-	// 週日的時段和週六相同
+	// 平日：營業時間 07:00 – 21:00 內每個整點一堂（07:00 … 20:00）
+	private static final List<Entry> WEEKDAY = open("07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+			"14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00");
+
+	// 週末：09:00 – 17:00，12:00 午休
+	private static final List<Entry> WEEKEND = open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00");
+
 	private static final Map<DayOfWeek, List<Entry>> WEEK = Map.of(
-			DayOfWeek.MONDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "16:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.TUESDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.WEDNESDAY, open("07:00", "08:00", "10:00", "11:00", "15:00", "16:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.THURSDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.FRIDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.SATURDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"),
-			DayOfWeek.SUNDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"));
+			DayOfWeek.MONDAY, WEEKDAY,
+			DayOfWeek.TUESDAY, WEEKDAY,
+			DayOfWeek.WEDNESDAY, WEEKDAY,
+			DayOfWeek.THURSDAY, WEEKDAY,
+			DayOfWeek.FRIDAY, WEEKDAY,
+			DayOfWeek.SATURDAY, WEEKEND,
+			DayOfWeek.SUNDAY, WEEKEND);
 
 	private WeeklySchedule() {
 	}
