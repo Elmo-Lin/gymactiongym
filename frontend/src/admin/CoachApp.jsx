@@ -89,7 +89,7 @@ export default function CoachApp({ api, user, onLogout }) {
       const student = students.find((s) => s.id === studentId)
       const remaining = Math.max(0, student.remaining - 1)
       setStudents((list) =>
-        list.map((s) => (s.id === studentId ? { ...s, remaining, history: [...s.history, saved] } : s)),
+        list.map((s) => (s.id === studentId ? { ...s, remaining, history: [...s.history, saved].sort((a, b) => a.date.localeCompare(b.date)) } : s)),
       )
       if (bookingId) {
         setBookings((list) => list.map((b) => (b.id === bookingId ? { ...b, done: true } : b)))

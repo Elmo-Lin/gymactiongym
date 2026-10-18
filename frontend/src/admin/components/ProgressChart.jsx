@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatWeight, shortDate } from '../utils.js'
 
+// 最低高度；放在比較高的區塊裡時，會撐滿剩下的空間（見 coach.css 的 .progress-block）
 const HEIGHT = 220
 const PAD = { top: 24, right: 20, bottom: 28, left: 40 }
 
@@ -19,11 +20,15 @@ function niceTicks(min, max, count = 4) {
 export default function ProgressChart({ points }) {
   const wrapRef = useRef(null)
   const [width, setWidth] = useState(600)
+  const [height, setHeight] = useState(HEIGHT)
   const [hover, setHover] = useState(null)
 
   useEffect(() => {
     const el = wrapRef.current
-    const ro = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
+    const ro = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width)
+      setHeight(Math.max(HEIGHT, entry.contentRect.height))
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -35,7 +40,7 @@ export default function ProgressChart({ points }) {
   const yMin = ticks[0]
   const yMax = ticks[ticks.length - 1]
   const innerW = width - PAD.left - PAD.right
-  const innerH = HEIGHT - PAD.top - PAD.bottom
+  const innerH = height - PAD.top - PAD.bottom
   const x = (i) => PAD.left + (points.length === 1 ? innerW / 2 : (i / (points.length - 1)) * innerW)
   const y = (v) => PAD.top + innerH - ((v - yMin) / (yMax - yMin || 1)) * innerH
   const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p.weight)}`).join(' ')
@@ -60,7 +65,7 @@ export default function ProgressChart({ points }) {
     <div className="chart" ref={wrapRef}>
       <svg
         width={width}
-        height={HEIGHT}
+        height={height}
         role="img"
         aria-label={`重量從 ${points[0].weight} 公斤進步到 ${points[last].weight} 公斤`}
         onPointerMove={handleMove}
@@ -76,7 +81,7 @@ export default function ProgressChart({ points }) {
         ))}
         {points.map((p, i) =>
           i % labelEvery === 0 || i === last ? (
-            <text key={p.date} className="axis" x={x(i)} y={HEIGHT - 8} textAnchor="middle">
+            <text key={p.date} className="axis" x={x(i)} y={height - 8} textAnchor="middle">
               {shortDate(p.date)}
             </text>
           ) : null,

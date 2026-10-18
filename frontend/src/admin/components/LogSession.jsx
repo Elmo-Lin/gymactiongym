@@ -181,6 +181,8 @@ function ExercisePicker({ library, available, adding, onPick, onCreate, onRemove
 
 export default function LogSession({ student, booking, library, onLibraryChange, onCancel, onSave }) {
   const [plan, setPlan] = useState(() => defaultPlan(student, booking))
+  // 從排的課點進來就記在那堂課的日期，否則記在今天
+  const date = booking?.date ?? TODAY
   const [exercises, setExercises] = useState(() => PLANS[plan].map((n) => prefill(student, n)))
   const [note, setNote] = useState('')
   const [adding, setAdding] = useState('')
@@ -242,7 +244,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
     setSaving(true)
     await onSave({
       id: `${student.id}-${Date.now()}`,
-      date: TODAY,
+      date,
       plan,
       // 有 PR 的動作一起存下當時的 PR 和每組的 %，之後 PR 更新了，這筆紀錄的 % 也不會變
       exercises: exercises
@@ -275,7 +277,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
           <h1>{student.name}</h1>
           <p className="muted">
             <span className="num">
-              {shortDate(TODAY)} {booking ? booking.time : ''}
+              {shortDate(date)} {booking ? booking.time : ''}
             </span>{' '}
             · <Remaining remaining={student.remaining} />
           </p>

@@ -66,8 +66,8 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
         </p>
       )}
 
-      <div className="cols cols-wide">
-        <section className="block">
+      <div className="cols cols-wide student-top">
+        <section className="block progress-block">
           <div className="block-head">
             <h2>進步</h2>
             <button className="text-btn" onClick={() => setShowTable((v) => !v)}>

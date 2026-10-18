@@ -824,6 +824,34 @@
   touch-action: pan-y;
 }
 
+/* 學生頁上方：進步圖和右邊那一欄切齊高度。
+   圖表撐滿區塊剩下的空間；svg 用 absolute，才不會反過來把區塊撐住、高度縮不回去 */
+.progress-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-block .chart {
+  flex: 1;
+  min-height: 220px;
+}
+
+.progress-block .chart svg {
+  position: absolute;
+  inset: 0;
+}
+
+@media (min-width: 900px) {
+  .student-top {
+    align-items: stretch;
+  }
+
+  /* 左邊比較高時，右欄最後一塊往下撐，底部一樣切齊 */
+  .student-top > .stack > :last-child {
+    flex: 1;
+  }
+}
+
 .chart .grid {
   stroke: var(--rule);
   stroke-width: 1;

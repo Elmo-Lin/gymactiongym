@@ -222,11 +222,11 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
                   <span className="done-mark">
                     <Icon name="check" size={16} /> 已記錄
                   </span>
-                ) : b.date <= TODAY ? (
+                ) : (
                   <button className="btn btn-ink" onClick={() => onLog(s.id, b.id)}>
                     記錄
                   </button>
-                ) : null}
+                )}
               </li>
             )
           })}
@@ -254,7 +254,7 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
                   <button
                     key={b.id}
                     className={`slot ${b.done ? 'done' : 'draggable'} ${isDragging(b) ? 'dragging' : ''}`}
-                    onClick={() => (b.done || b.date > TODAY ? onOpen(s.id) : onLog(s.id, b.id))}
+                    onClick={() => (b.done ? onOpen(s.id) : onLog(s.id, b.id))}
                     {...draggable(b)}
                   >
                     <span className="slot-time num">{b.time}</span>
