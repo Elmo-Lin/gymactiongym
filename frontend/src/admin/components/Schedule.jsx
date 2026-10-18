@@ -4,14 +4,17 @@ import { parseISO, shortDate, weekStart, weekday } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 import useBookingDrag from './useBookingDrag.js'
 
+// 排課時就扣 1 堂，所以剩 0 堂的學生不能選
 function AddBooking({ students, date, onAdd, onClose }) {
-  const [studentId, setStudentId] = useState(students[0].id)
+  const first = students.find((s) => s.remaining > 0)
+  const [studentId, setStudentId] = useState(first?.id ?? '')
   const [time, setTime] = useState('19:00')
-  const [plan, setPlan] = useState(students[0].plans[0])
+  const [plan, setPlan] = useState(first?.plans[0] ?? Object.keys(PLANS)[0])
   const [day, setDay] = useState(date)
 
   const submit = (e) => {
     e.preventDefault()
+    if (!first) return
     onAdd({ studentId, time, plan, date: day })
     onClose()
   }
@@ -35,8 +38,8 @@ function AddBooking({ students, date, onAdd, onClose }) {
             }}
           >
             {students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}（剩 {s.remaining} 堂）
+              <option key={s.id} value={s.id} disabled={s.remaining <= 0}>
+                {s.name}（{s.remaining > 0 ? `剩 ${s.remaining} 堂` : '堂數已用完'}）
               </option>
             ))}
           </select>
@@ -58,8 +61,9 @@ function AddBooking({ students, date, onAdd, onClose }) {
           </select>
         </label>
       </div>
-      <button className="btn btn-ink" type="submit">
-        確認排課
+      {!first && <p className="muted">所有學生的堂數都用完了，請先到學生頁購買堂數。</p>}
+      <button className="btn btn-ink" type="submit" disabled={!first}>
+        確認排課，扣 1 堂
       </button>
     </form>
   )

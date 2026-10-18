@@ -223,7 +223,8 @@ public class CoachRepository {
 		}));
 	}
 
-	// 記錄訓練：在同一個 transaction 裡新增紀錄、扣 1 堂（最少到 0）、把對應的課標記為已記錄
+	// 記錄訓練：在同一個 transaction 裡新增紀錄、把對應的課標記為已記錄。
+	// 堂數在排課時就扣了，這裡不扣；只有改成排課扣堂之前排的課（沒有 charged）還沒扣過，記錄時補扣
 	public SessionResult logSession(String studentId, SessionRequest request) {
 		DocumentReference studentRef = students.document(studentId);
 		DocumentReference lessonRef = request.bookingId() == null ? null : lessons.document(request.bookingId());
@@ -239,24 +240,38 @@ public class CoachRepository {
 			}
 			DocumentSnapshot lesson = lessonRef == null ? null : tx.get(lessonRef).get();
 
-			int remaining = Math.max(0, intValue(student.get("remaining")) - 1);
+			int remaining = intValue(student.get("remaining"));
 			tx.create(sessionRef, sessionMap(studentId, session));
-			tx.update(studentRef, "remaining", remaining);
 			if (lesson != null && lesson.exists() && studentId.equals(lesson.getString("studentId"))) {
+				if (!Boolean.TRUE.equals(lesson.getBoolean("done")) && lesson.getBoolean("charged") == null) {
+					remaining = Math.max(0, remaining - 1);
+					tx.update(studentRef, "remaining", remaining);
+				}
 				tx.update(lessonRef, "done", true);
 			}
 			return new SessionResult(session, remaining);
 		}));
 	}
 
+	// 排課：在同一個 transaction 裡新增課程、扣 1 堂；沒有剩餘堂數就不能排
 	public Lesson addLesson(LessonRequest request) {
-		if (!await(students.document(request.studentId()).get()).exists()) {
-			throw notFound("找不到這位學生");
-		}
+		DocumentReference studentRef = students.document(request.studentId());
 		DocumentReference ref = lessons.document();
 		Lesson lesson = new Lesson(ref.getId(), request.date(), request.time(), request.studentId(), request.plan(), false);
-		await(ref.create(lessonMap(lesson)));
-		return lesson;
+
+		return await(firestore.runTransaction((tx) -> {
+			DocumentSnapshot student = tx.get(studentRef).get();
+			if (!student.exists()) {
+				throw notFound("找不到這位學生");
+			}
+			int remaining = intValue(student.get("remaining"));
+			if (remaining <= 0) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT, "沒有剩餘堂數，請先購買堂數");
+			}
+			tx.create(ref, lessonMap(lesson));
+			tx.update(studentRef, "remaining", remaining - 1);
+			return lesson;
+		}));
 	}
 
 	// 改期：已經記錄過訓練的課不能改，也不能改到今天以前（以台灣時間為準，不依賴瀏覽器的日期）
@@ -420,6 +435,8 @@ public class CoachRepository {
 		data.put("studentId", lesson.studentId());
 		data.put("plan", lesson.plan());
 		data.put("done", lesson.done());
+		// 已經在排課時扣過堂（記錄訓練時用來判斷要不要補扣）
+		data.put("charged", true);
 		return data;
 	}
 

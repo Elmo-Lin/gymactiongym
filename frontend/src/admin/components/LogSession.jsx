@@ -238,7 +238,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
     setAdding('')
   }
 
-  // 存檔需要時間（送到後端），期間停用按鈕避免連按扣兩堂；成功後會離開這個畫面
+  // 存檔需要時間（送到後端），期間停用按鈕避免連按存成兩筆；成功後會離開這個畫面
   const save = async () => {
     if (saving) return
     setSaving(true)
@@ -401,7 +401,7 @@ export default function LogSession({ student, booking, library, onLibraryChange,
           {exercises.length} 動作 · {totalSets} 組
         </span>
         <button className="btn btn-accent btn-lg" onClick={save} disabled={!totalSets || saving}>
-          {saving ? '儲存中…' : '儲存，扣 1 堂'}
+          {saving ? '儲存中…' : '儲存'}
         </button>
       </div>
     </div>

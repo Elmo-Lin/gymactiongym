@@ -85,16 +85,17 @@ export default function CoachApp({ api, user, onLogout }) {
 
   const saveSession = async (studentId, session, bookingId) => {
     try {
-      const { session: saved } = await api.logSession(studentId, session, bookingId)
+      // 堂數在排課時扣，記錄不扣；後端回傳的 remaining 只有舊的課（改規則前排的）補扣時會變
+      const { session: saved, remaining: left } = await api.logSession(studentId, session, bookingId)
       const student = students.find((s) => s.id === studentId)
-      const remaining = Math.max(0, student.remaining - 1)
+      const remaining = left ?? student.remaining
       setStudents((list) =>
         list.map((s) => (s.id === studentId ? { ...s, remaining, history: [...s.history, saved].sort((a, b) => a.date.localeCompare(b.date)) } : s)),
       )
       if (bookingId) {
         setBookings((list) => list.map((b) => (b.id === bookingId ? { ...b, done: true } : b)))
       }
-      showToast(`已儲存 ${student.name} 的訓練紀錄，扣 1 堂（剩 ${remaining} 堂）`)
+      showToast(`已儲存 ${student.name} 的訓練紀錄`)
       go({ tab: route.tab, studentId })
     } catch {
       showToast('訓練紀錄儲存失敗，請再試一次')
@@ -211,12 +212,19 @@ export default function CoachApp({ api, user, onLogout }) {
     }
   }
 
+  // 排課時扣 1 堂（後端會再檢查一次剩餘堂數）
   const addBooking = async (booking) => {
+    const student = students.find((s) => s.id === booking.studentId)
+    if (student.remaining <= 0) {
+      showToast(`${student.name} 沒有剩餘堂數，請先購買堂數`)
+      return
+    }
     try {
       const created = await api.addBooking(booking)
+      const remaining = student.remaining - 1
       setBookings((list) => [...list, created])
-      const student = students.find((s) => s.id === booking.studentId)
-      showToast(`已為 ${student.name} 排課：${booking.date.slice(5).replace('-', '/')} ${booking.time}`)
+      setStudents((list) => list.map((s) => (s.id === student.id ? { ...s, remaining } : s)))
+      showToast(`已為 ${student.name} 排課：${booking.date.slice(5).replace('-', '/')} ${booking.time}，扣 1 堂（剩 ${remaining} 堂）`)
     } catch {
       showToast('排課失敗，請再試一次')
     }

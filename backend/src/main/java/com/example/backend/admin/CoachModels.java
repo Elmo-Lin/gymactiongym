@@ -75,7 +75,7 @@ public final class CoachModels {
 	public record Lesson(String id, String date, String time, String studentId, String plan, boolean done) {
 	}
 
-	// 新增或修改學生的基本資料；堂數另外由購買堂數、記錄訓練增減
+	// 新增或修改學生的基本資料；堂數另外由購買堂數、排課增減
 	public record StudentRequest(
 			@NotBlank @Size(max = 50) String name,
 			@NotNull @Pattern(regexp = "男|女") String gender,
