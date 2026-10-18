@@ -101,13 +101,31 @@ export default function CoachApp({ api, user, onLogout }) {
     }
   }
 
+  // 購買堂數；按錯了可以在提示訊息上復原（把堂數改回購買前）
   const addPackage = (studentId, count) => {
+    const student = students.find((s) => s.id === studentId)
     setStudents((list) =>
       list.map((s) => (s.id === studentId ? { ...s, total: s.total + count, remaining: s.remaining + count } : s)),
     )
-    const student = students.find((s) => s.id === studentId)
-    showToast(`${student.name} 已購買 ${count} 堂課`)
     persist(api.addPackage(studentId, count))
+    showToast(`${student.name} 已購買 ${count} 堂課`, {
+      label: '復原',
+      run: () => {
+        writePackage(studentId, student.total, student.remaining)
+        setToast(null)
+      },
+    })
+  }
+
+  const writePackage = (studentId, total, remaining) => {
+    setStudents((list) => list.map((s) => (s.id === studentId ? { ...s, total, remaining } : s)))
+    persist(api.setPackage(studentId, total, remaining))
+  }
+
+  const setPackage = (studentId, total, remaining) => {
+    const student = students.find((s) => s.id === studentId)
+    writePackage(studentId, total, remaining)
+    showToast(`已修改 ${student.name} 的堂數：剩 ${remaining} 堂 / 累計 ${total} 堂`)
   }
 
   // PR：同一個動作同一天只留一筆，再輸入一次就蓋過（和後端的規則相同）
@@ -267,6 +285,7 @@ export default function CoachApp({ api, user, onLogout }) {
         onLog={() => startLog(current.id)}
         onEdit={() => go({ tab: route.tab, studentId: current.id, form: 'edit' })}
         onAddPackage={(n) => addPackage(current.id, n)}
+        onSetPackage={(total, remaining) => setPackage(current.id, total, remaining)}
         library={exercises}
         onSavePr={(pr) => savePr(current.id, pr)}
       />

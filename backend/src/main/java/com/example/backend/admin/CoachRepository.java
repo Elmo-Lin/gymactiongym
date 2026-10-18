@@ -208,6 +208,21 @@ public class CoachRepository {
 		}));
 	}
 
+	// 修改堂數：直接設定累計購買與剩餘堂數
+	public PackageResult setPackage(String id, int total, int remaining) {
+		if (remaining > total) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "剩餘堂數不能超過累計購買堂數");
+		}
+		DocumentReference ref = students.document(id);
+		return await(firestore.runTransaction((tx) -> {
+			if (!tx.get(ref).get().exists()) {
+				throw notFound("找不到這位學生");
+			}
+			tx.update(ref, "total", total, "remaining", remaining);
+			return new PackageResult(total, remaining);
+		}));
+	}
+
 	// 記錄訓練：在同一個 transaction 裡新增紀錄、扣 1 堂（最少到 0）、把對應的課標記為已記錄
 	public SessionResult logSession(String studentId, SessionRequest request) {
 		DocumentReference studentRef = students.document(studentId);

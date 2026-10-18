@@ -92,6 +92,10 @@ public final class CoachModels {
 	public record PackageResult(int total, int remaining) {
 	}
 
+	// 直接修改堂數（按錯 +10 堂、或堂數記錯時修正）。剩餘堂數不能超過累計購買堂數
+	public record PackageUpdateRequest(@Min(0) @Max(1000) int total, @Min(0) @Max(1000) int remaining) {
+	}
+
 	// 記錄訓練；bookingId 是從排課點進來時對應的那堂課，會一併標記為已記錄
 	public record SessionRequest(
 			@NotNull @Pattern(regexp = DATE) String date,

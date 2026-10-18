@@ -85,12 +85,15 @@ export default function Students({ students, deleted, onOpen, onCreate, onRestor
                       </span>
                     </td>
                     <td className="hide-sm">{s.goal}</td>
-                    <td className="hide-sm">
-                      <div className="ticks" style={{ '--n': s.total }} aria-label={`已上 ${used} / ${s.total} 堂`}>
-                        {Array.from({ length: s.total }, (_, i) => (
-                          <i key={i} className={i < used ? 'on' : ''} />
-                        ))}
-                      </div>
+                    <td className="hide-sm roster-used num">
+                      {s.total > 0 ? (
+                        <>
+                          {used}
+                          <small> / {s.total} 堂</small>
+                        </>
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
                     </td>
                     <td className="hide-sm muted">{last ? relativeDate(last.date) : '尚未上課'}</td>
                     <td className="right">

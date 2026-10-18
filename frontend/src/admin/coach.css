@@ -409,34 +409,6 @@
   padding: 0 20px 2px;
 }
 
-/* 堂數格：一格一堂 */
-.ticks {
-  display: grid;
-  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  gap: 2px;
-  width: 160px;
-}
-
-.ticks i {
-  height: 10px;
-  border-radius: 2px;
-  background: var(--paper-2);
-}
-
-.ticks i.on {
-  background: var(--oak);
-}
-
-.ticks-lg {
-  width: 100%;
-  gap: 3px;
-}
-
-.ticks-lg i {
-  height: 18px;
-  border-radius: 3px;
-}
-
 .toast {
   position: fixed;
   left: 16px;
@@ -1997,4 +1969,34 @@
 
 .btn-danger:hover:not(:disabled) {
   filter: brightness(0.92);
+}
+
+/* 學生名單的「已上課」：已上幾堂 / 累計購買幾堂 */
+.roster-used {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.roster-used small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* 修改堂數 */
+.package-edit {
+  display: block;
+  margin: 12px auto 0;
+  font-size: 13px;
+}
+
+.package-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 14px 0 6px;
+}
+
+.package-hint {
+  font-size: 12px;
 }

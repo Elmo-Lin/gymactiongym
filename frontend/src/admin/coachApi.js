@@ -29,6 +29,7 @@ export function createDemoApi() {
     restoreStudent: async () => null,
     purgeStudent: async () => null,
     addPackage: async () => null,
+    setPackage: async () => null,
     savePr: async () => null,
     logSession: async (studentId, session) => ({ session: { ...session, id: newId(`${studentId}-`) } }),
     addBooking: async (booking) => ({ ...booking, id: newId('b'), done: false }),
@@ -55,6 +56,9 @@ export function createRemoteApi(getToken) {
     restoreStudent: (id) => call(`/api/admin/students/${id}/restore`, { method: 'POST' }),
     purgeStudent: (id) => call(`/api/admin/students/${id}/permanent`, { method: 'DELETE' }),
     addPackage: (id, count) => call(`/api/admin/students/${id}/packages`, { method: 'POST', body: { count } }),
+    // 直接設定堂數（按錯 +10 堂的復原、修改堂數）
+    setPackage: (id, total, remaining) =>
+      call(`/api/admin/students/${id}/package`, { method: 'PUT', body: { total, remaining } }),
     savePr: (id, pr) => call(`/api/admin/students/${id}/prs`, { method: 'POST', body: pr }),
     logSession: (studentId, session, bookingId) =>
       call(`/api/admin/students/${studentId}/sessions`, {

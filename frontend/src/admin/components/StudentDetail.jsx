@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { TODAY } from '../data.js'
 import { formatWeight, percentOf, relativeDate, shortDate, topSet, weekday } from '../utils.js'
+import PackageBlock from './PackageBlock.jsx'
 import PrBlock from './PrBlock.jsx'
 import ProgressChart from './ProgressChart.jsx'
-import { Icon, Remaining } from './ui.jsx'
+import { Icon } from './ui.jsx'
 
-export default function StudentDetail({ student, bookings, library, onBack, onLog, onEdit, onAddPackage, onSavePr }) {
+export default function StudentDetail({ student, bookings, library, onBack, onLog, onEdit, onAddPackage, onSetPackage, onSavePr }) {
   const counts = {}
   student.history.forEach((s) => s.exercises.forEach((e) => (counts[e.name] = (counts[e.name] || 0) + 1)))
   const exerciseNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
@@ -25,7 +26,6 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
   const gain = first && latest ? latest.weight - first.weight : 0
   const gainPct = first && first.weight ? Math.round((gain / first.weight) * 100) : 0
 
-  const used = student.total - student.remaining
   const upcoming = bookings
     .filter((b) => b.studentId === student.id && b.date >= TODAY && !b.done)
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
@@ -117,30 +117,7 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
         </section>
 
         <div className="stack">
-          <section className="block">
-            <div className="block-head">
-              <h2>堂數</h2>
-              <Remaining remaining={student.remaining} />
-            </div>
-            <div className="package">
-              <span className="package-big num">{student.remaining}</span>
-              <span className="package-of num">/ {student.total}</span>
-              <span className="muted package-used">已上 {used} 堂</span>
-            </div>
-            <div className="ticks ticks-lg" style={{ '--n': student.total }} aria-label={`已上 ${used} / ${student.total} 堂`}>
-              {Array.from({ length: student.total }, (_, i) => (
-                <i key={i} className={i < used ? 'on' : ''} />
-              ))}
-            </div>
-            <div className="btn-row">
-              <button className="btn btn-line" onClick={() => onAddPackage(10)}>
-                +10 堂
-              </button>
-              <button className="btn btn-line" onClick={() => onAddPackage(20)}>
-                +20 堂
-              </button>
-            </div>
-          </section>
+          <PackageBlock student={student} onAddPackage={onAddPackage} onSetPackage={onSetPackage} />
 
           <PrBlock student={student} library={library} onSave={onSavePr} />
 
