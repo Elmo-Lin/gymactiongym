@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// 教練在後台排的課（lessons 集合）也會佔用網站上的時段：
+// 教練在後台排的課（lessons 集合）也會佔用網站上同一間教室的時段：
 // 同一天、開始時間相差不到一堂課的長度（例如 19:30 的課會擋住 19:00 和 20:00）就算重疊，不能再被預約。
+// 課屬於哪間教室看學生的 program（健身學生的課只擋健身、皮拉提斯學生的課只擋皮拉提斯；沒有 program 的舊學生是健身）。
 // 已刪除學生的課不算（刪除學生只是標記，排課還留著，復原時才不會不見）
 public final class CoachLessons {
 
@@ -34,7 +35,7 @@ public final class CoachLessons {
 	private CoachLessons() {
 	}
 
-	public static List<Busy> between(Firestore firestore, Reader reader, LocalDate from, LocalDate to) {
+	public static List<Busy> between(Firestore firestore, Reader reader, String program, LocalDate from, LocalDate to) {
 		List<? extends DocumentSnapshot> lessons = reader.query(firestore.collection("lessons")
 				.whereGreaterThanOrEqualTo("date", from.toString())
 				.whereLessThanOrEqualTo("date", to.toString()));
@@ -49,6 +50,7 @@ public final class CoachLessons {
 				.toList();
 		Set<String> active = reader.getAll(studentRefs).stream()
 				.filter((student) -> student.exists() && student.getString("deletedAt") == null)
+				.filter((student) -> program.equals(student.getString("program") == null ? Plan.FITNESS : student.getString("program")))
 				.map(DocumentSnapshot::getId)
 				.collect(Collectors.toSet());
 

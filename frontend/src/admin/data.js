@@ -11,6 +11,39 @@ export const PLANS = {
   全身訓練: ['硬舉', '臥推', '划船', '弓箭步'],
 }
 
+// 皮拉提斯（霏霏教練）：器械、動作清單與課程主題。課程主題需與後端 CoachModels.PLAN 一致。
+// 每個動作記錄器械、彈簧與每組次數，不記重量
+export const APPARATUS = ['Reformer', 'Cadillac', 'Chair', '墊上']
+
+export const PILATES_EXERCISES = [
+  'Footwork', 'Hundred', 'Short Box', 'Long Stretch', 'Elephant', 'Rowing', 'Mermaid', 'Side Splits',
+  'Roll Down', 'Push Through', 'Leg Springs', 'Pike', 'Single Leg Pump', 'Swan', 'Spine Stretch', 'Saw',
+]
+
+// 動作常用的器械，新增動作時預設帶入（教練可以再改）；清單外的動作預設 Reformer
+const PILATES_APPARATUS = {
+  'Roll Down': 'Cadillac', 'Push Through': 'Cadillac', 'Leg Springs': 'Cadillac',
+  Pike: 'Chair', 'Single Leg Pump': 'Chair', Swan: 'Chair',
+  'Spine Stretch': '墊上', Saw: '墊上',
+}
+export const apparatusFor = (name) => PILATES_APPARATUS[name] ?? 'Reformer'
+
+export const PILATES_PLANS = {
+  核心穩定: ['Footwork', 'Hundred', 'Short Box', 'Pike'],
+  下肢雕塑: ['Footwork', 'Side Splits', 'Single Leg Pump', 'Leg Springs'],
+  上肢體態: ['Rowing', 'Long Stretch', 'Push Through', 'Swan'],
+  伸展放鬆: ['Roll Down', 'Mermaid', 'Spine Stretch', 'Saw'],
+}
+
+// 後台的兩種課程類別：學生、堂數、排課與訓練紀錄完全分開，最上方切換。需與後端 Plan.java 的 program 一致
+export const PROGRAMS = {
+  fitness: { id: 'fitness', label: '健身', plans: PLANS, exercises: EXERCISES },
+  pilates: { id: 'pilates', label: '皮拉提斯', plans: PILATES_PLANS, exercises: PILATES_EXERCISES },
+}
+
+// 沒有 program 的舊學生都是健身
+export const programOf = (student) => student.program ?? 'fitness'
+
 // 每個動作的基準重量（kg），會再乘上學生的力量係數
 const BASE_WEIGHT = {
   深蹲: 50, 硬舉: 60, 羅馬尼亞硬舉: 45, 臀推: 60, 弓箭步: 16, 腿推: 90,
@@ -99,8 +132,46 @@ const PR_SEED = [
   ['s5', '架上硬舉', 170, 20],
 ]
 
-export const INITIAL_STUDENTS = STUDENT_SEED.map((s, i) => {
-  const student = { ...s, id: `s${i + 1}` }
+// 皮拉提斯的示範學生
+const PILATES_SEED = [
+  { name: '林小姐', gender: '女', age: 34, goal: '改善久坐痠痛', plans: ['核心穩定', '伸展放鬆'], total: 8, remaining: 5, phone: '0911-222-333', note: '下背容易緊，Roll Down 慢慢來' },
+  { name: '周雅雯', gender: '女', age: 29, goal: '體態雕塑', plans: ['下肢雕塑', '上肢體態'], total: 16, remaining: 9, phone: '0952-888-101', note: '' },
+  { name: '何太太', gender: '女', age: 41, goal: '產後恢復', plans: ['核心穩定', '下肢雕塑'], total: 8, remaining: 2, phone: '0937-456-789', note: '腹直肌分離，避免捲腹類動作' },
+]
+
+const SPRINGS = { Reformer: ['2紅1藍', '3紅', '1紅1藍', '1藍'], Cadillac: ['1紫', '2黃', '1藍'], Chair: ['1黑1灰', '2灰', '1黑'], 墊上: [''] }
+
+function buildPilatesHistory(student, index) {
+  const rand = seeded(index * 53 + 7)
+  return Array.from({ length: 6 }, (_, i) => {
+    const plan = student.plans[i % student.plans.length]
+    const exercises = PILATES_PLANS[plan].map((name) => {
+      const apparatus = apparatusFor(name)
+      const springs = SPRINGS[apparatus]
+      const reps = 8 + Math.floor(rand() * 3) * 2
+      return { name, apparatus, spring: springs[Math.floor(rand() * springs.length)], sets: [{ weight: 0, reps }, { weight: 0, reps }] }
+    })
+    return {
+      id: `${student.id}-h${i}`,
+      date: addDays(TODAY, -(6 - i) * 5),
+      plan,
+      exercises,
+      note: i === 5 ? '核心控制進步很多，下次 Footwork 可以減一條彈簧' : '',
+    }
+  })
+}
+
+export const INITIAL_STUDENTS = [
+  ...STUDENT_SEED.map((s, i) => buildFitnessStudent(s, i)),
+  ...PILATES_SEED.map((s, i) => {
+    const student = { ...s, id: `p${i + 1}`, program: 'pilates', prs: [] }
+    student.history = buildPilatesHistory(student, i)
+    return student
+  }),
+]
+
+function buildFitnessStudent(s, i) {
+  const student = { ...s, id: `s${i + 1}`, program: 'fitness' }
   student.history = buildHistory(student, i)
   student.prs = PR_SEED.filter(([id]) => id === student.id).map(([, exercise, weight, daysAgo]) => ({
     exercise,
@@ -108,7 +179,7 @@ export const INITIAL_STUDENTS = STUDENT_SEED.map((s, i) => {
     date: addDays(TODAY, -daysAgo),
   }))
   return student
-})
+}
 
 // 排課：今天固定三堂，其餘依星期分布在本週與下週，讓任何一天打開 Demo 都有完整的一週
 const TODAY_SEED = [
@@ -137,6 +208,14 @@ const WEEK_SEED = [
   [8, '10:00', 's6', '全身訓練'],
   [9, '19:00', 's2', '上肢訓練'],
   [10, '08:00', 's4', '全身訓練'],
+  // 皮拉提斯在另一間教室，和健身同一個時間也沒關係
+  [0, '10:00', 'p1', '核心穩定'],
+  [1, '19:00', 'p2', '下肢雕塑'],
+  [2, '14:00', 'p3', '核心穩定'],
+  [3, '19:00', 'p2', '上肢體態'],
+  [4, '10:00', 'p1', '伸展放鬆'],
+  [5, '10:00', 'p3', '下肢雕塑'],
+  [8, '19:00', 'p2', '下肢雕塑'],
 ]
 
 const weekday = new Date().getDay()

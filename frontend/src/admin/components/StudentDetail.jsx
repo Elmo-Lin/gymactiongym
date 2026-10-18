@@ -6,7 +6,15 @@ import PrBlock from './PrBlock.jsx'
 import ProgressChart from './ProgressChart.jsx'
 import { Icon } from './ui.jsx'
 
-export default function StudentDetail({ student, bookings, library, onBack, onLog, onEdit, onAddPackage, onSetPackage, onSavePr }) {
+// 皮拉提斯動作的一行：例如「2紅1藍 · 10 下 × 2 組」（墊上動作沒有彈簧）
+function pilatesSummary(e) {
+  const reps = e.sets.map((s) => s.reps)
+  const same = reps.every((r) => r === reps[0])
+  return [e.spring, same ? `${reps[0]} 下 × ${reps.length} 組` : `${reps.join('／')} 下`].filter(Boolean).join(' · ')
+}
+
+// pilates：皮拉提斯的學生不記重量與 PR，「進步」和「PR」區塊改成顯示上一堂課的內容
+export default function StudentDetail({ student, bookings, library, pilates, onBack, onLog, onEdit, onAddPackage, onSetPackage, onSavePr }) {
   const counts = {}
   student.history.forEach((s) => s.exercises.forEach((e) => (counts[e.name] = (counts[e.name] || 0) + 1)))
   const exerciseNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
@@ -67,6 +75,9 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
       )}
 
       <div className="cols cols-wide student-top">
+        {pilates ? (
+          <LastPilatesSession session={student.history[student.history.length - 1]} />
+        ) : (
         <section className="block progress-block">
           <div className="block-head">
             <h2>進步</h2>
@@ -115,11 +126,12 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
             <ProgressChart key={exercise} points={points} />
           )}
         </section>
+        )}
 
         <div className="stack">
           <PackageBlock student={student} onAddPackage={onAddPackage} onSetPackage={onSetPackage} />
 
-          <PrBlock student={student} library={library} onSave={onSavePr} />
+          {!pilates && <PrBlock student={student} library={library} onSave={onSavePr} />}
 
           <section className="block">
             <div className="block-head">
@@ -162,6 +174,17 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
                 <p className="log-plan">{session.plan}</p>
                 <dl className="log-ex">
                   {session.exercises.map((e) => {
+                    if (pilates) {
+                      return (
+                        <div key={e.name}>
+                          <dt>
+                            {e.apparatus && <small className="apparatus">{e.apparatus}</small>}
+                            {e.name}
+                          </dt>
+                          <dd className="num">{pilatesSummary(e)}</dd>
+                        </div>
+                      )
+                    }
                     const best = topSet(e.sets)
                     return (
                       <div key={e.name}>
@@ -187,5 +210,48 @@ export default function StudentDetail({ student, bookings, library, onBack, onLo
         )}
       </section>
     </div>
+  )
+}
+
+// 皮拉提斯學生頁左上：上一堂課做了哪些動作、用什麼器械與彈簧，下一堂課可以參考
+function LastPilatesSession({ session }) {
+  return (
+    <section className="block">
+      <div className="block-head">
+        <h2>上一堂課</h2>
+        {session && (
+          <span className="num">
+            {shortDate(session.date)} · {session.plan}
+          </span>
+        )}
+      </div>
+      {!session ? (
+        <p className="empty">還沒有訓練紀錄，按「記錄今天的訓練」開始第一筆。</p>
+      ) : (
+        <table className="mini-table pilates-table">
+          <thead>
+            <tr>
+              <th>器械</th>
+              <th>動作</th>
+              <th>彈簧</th>
+              <th className="right">次數</th>
+            </tr>
+          </thead>
+          <tbody>
+            {session.exercises.map((e) => (
+              <tr key={e.name}>
+                <td className="muted">{e.apparatus ?? '—'}</td>
+                <td>{e.name}</td>
+                <td className="num">{e.spring || '—'}</td>
+                <td className="num right">
+                  {e.sets.map((s) => s.reps).join('／')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {session?.note && <p className="log-note">「{session.note}」</p>}
+    </section>
   )
 }

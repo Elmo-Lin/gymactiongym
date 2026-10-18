@@ -103,6 +103,28 @@
   font-weight: 700;
 }
 
+/* 健身／皮拉提斯切換 */
+.program-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper-2);
+}
+
+.program-switch button {
+  padding: 6px 16px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.program-switch button.active {
+  background: var(--walnut);
+  color: var(--paper);
+}
+
 .topbar-meta {
   margin-left: auto;
   font-size: 13px;
@@ -1624,7 +1646,9 @@
 /* 手機沒有頂部列，帳號資訊放在內容最上面 */
 .account-bar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -2031,4 +2055,74 @@
 
 .package-hint {
   font-size: 12px;
+}
+
+/* ---------- 皮拉提斯 ---------- */
+/* 記錄訓練：每個動作的器械與彈簧 */
+.ex-gear {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ex-gear label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ex-gear input,
+.ex-gear select {
+  height: 38px;
+  min-width: 0;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+}
+
+.ex-gear input:focus,
+.ex-gear select:focus {
+  border-color: var(--oak);
+}
+
+/* 皮拉提斯每組只記次數：組｜上次｜次數｜刪除 */
+.set-grid.pilates {
+  grid-template-columns: 16px 44px 1fr 24px;
+}
+
+@media (min-width: 900px) {
+  .set-grid.pilates {
+    grid-template-columns: 18px 56px minmax(0, 220px) 28px;
+  }
+}
+
+/* 學生頁的紀錄：動作名稱前的器械 */
+.log-ex .apparatus {
+  margin-right: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--oak);
+}
+
+.pilates-table th {
+  padding-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+}
+
+.pilates-table th.right {
+  text-align: right;
+}
+
+.pilates-table td {
+  padding-right: 8px;
 }

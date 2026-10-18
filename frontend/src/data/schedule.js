@@ -30,7 +30,6 @@ export const studioInfo = {
   address: '326 桃園市楊梅區楊江里光華街 8 號',
   phone: '0962-071-332',
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E5%8D%B3%E5%8B%95+action+gym+%E6%A5%8A%E6%A2%85%E5%BA%97',
-  rating: { score: '5.0', count: 23 },
   line: '@actiongym',
   email: 'hello@actiongym.tw',
   instagram: '@gymactiongym',

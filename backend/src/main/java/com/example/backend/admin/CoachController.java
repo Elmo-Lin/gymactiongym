@@ -1,5 +1,11 @@
 package com.example.backend.admin;
 
+import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.example.backend.schedule.Plan;
+
 import com.example.backend.admin.CoachModels.AdminData;
 import com.example.backend.admin.CoachModels.ExercisesRequest;
 import com.example.backend.admin.CoachModels.ImportRequest;
@@ -108,9 +114,14 @@ public class CoachController {
 		return coachRepository.addLesson(request);
 	}
 
+	// 例如 PUT /api/admin/exercises?program=pilates；沒有 program 時是健身的動作清單
 	@PutMapping("/exercises")
-	public List<String> saveExercises(@Valid @RequestBody ExercisesRequest request) {
-		return coachRepository.saveExercises(request.exercises());
+	public List<String> saveExercises(@Valid @RequestBody ExercisesRequest request,
+			@RequestParam(defaultValue = Plan.FITNESS) String program) {
+		if (!Plan.PROGRAMS.contains(program)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "找不到這個課程類別");
+		}
+		return coachRepository.saveExercises(program, request.exercises());
 	}
 
 	@PatchMapping("/lessons/{id}")

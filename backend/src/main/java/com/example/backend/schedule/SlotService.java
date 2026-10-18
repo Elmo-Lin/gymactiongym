@@ -21,10 +21,10 @@ public class SlotService {
 	}
 
 	// 固定課表 + 網站上的預約 + 教練在後台排的課 = 每個時段目前的狀態。
-	// 兩間教室各自計算；後台排課是石頭教練的課，只會佔用健身的時段
+	// 兩間教室各自計算：後台排的課只佔用該學生所屬教室的時段
 	public List<Slot> getSlots(String program, LocalDate from, LocalDate to) {
 		Map<String, SlotUsage> usages = slotRepository.findBetween(program, from, to);
-		List<CoachLessons.Busy> lessons = Plan.FITNESS.equals(program) ? slotRepository.findCoachLessons(from, to) : List.of();
+		List<CoachLessons.Busy> lessons = slotRepository.findCoachLessons(program, from, to);
 		LocalDateTime now = LocalDateTime.now(TAIPEI);
 
 		List<Slot> slots = new ArrayList<>();

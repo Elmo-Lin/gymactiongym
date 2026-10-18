@@ -26,8 +26,8 @@ public class SlotRepository {
 		this.slots = firestore.collection("slots");
 	}
 
-	// 日期範圍內教練在後台排的課，和這些課重疊的時段也算已被預約
-	public List<CoachLessons.Busy> findCoachLessons(LocalDate from, LocalDate to) {
+	// 日期範圍內教練在後台為這間教室排的課，和這些課重疊的時段也算已被預約
+	public List<CoachLessons.Busy> findCoachLessons(String program, LocalDate from, LocalDate to) {
 		return CoachLessons.between(firestore, new CoachLessons.Reader() {
 			@Override
 			public List<? extends DocumentSnapshot> query(Query query) {
@@ -38,7 +38,7 @@ public class SlotRepository {
 			public List<DocumentSnapshot> getAll(List<DocumentReference> refs) {
 				return await(firestore.getAll(refs.toArray(new DocumentReference[0])));
 			}
-		}, from, to);
+		}, program, from, to);
 	}
 
 	// 日期範圍內這個教室被佔用的時段，key 為文件 ID。date 存成 2026-10-12 這種字串，依文字排序剛好就是日期順序。

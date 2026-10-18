@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { PLANS, TODAY, addDays } from '../data.js'
+import { TODAY, addDays } from '../data.js'
 import { parseISO, shortDate, weekStart, weekday } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 import useBookingDrag from './useBookingDrag.js'
 
 // 排課時就扣 1 堂，所以剩 0 堂的學生不能選
-function AddBooking({ students, date, onAdd, onClose }) {
+// plans：目前類別（健身或皮拉提斯）的課程內容
+function AddBooking({ students, plans, date, onAdd, onClose }) {
   const first = students.find((s) => s.remaining > 0)
   const [studentId, setStudentId] = useState(first?.id ?? '')
   const [time, setTime] = useState('19:00')
-  const [plan, setPlan] = useState(first?.plans[0] ?? Object.keys(PLANS)[0])
+  const [plan, setPlan] = useState(first?.plans[0] ?? Object.keys(plans)[0])
   const [day, setDay] = useState(date)
 
   const submit = (e) => {
@@ -55,7 +56,7 @@ function AddBooking({ students, date, onAdd, onClose }) {
         <label>
           課程內容
           <select value={plan} onChange={(e) => setPlan(e.target.value)}>
-            {Object.keys(PLANS).map((p) => (
+            {Object.keys(plans).map((p) => (
               <option key={p}>{p}</option>
             ))}
           </select>
@@ -86,7 +87,7 @@ function WeekEdge({ dir, active }) {
 // 已記錄的課不能移動；也不能改到今天以前
 const canDrop = (booking, date) => !booking.done && date >= TODAY && date !== booking.date
 
-export default function Schedule({ students, bookings, onOpen, onLog, onAddBooking, onMoveBooking }) {
+export default function Schedule({ students, bookings, plans, onOpen, onLog, onAddBooking, onMoveBooking }) {
   const [monday, setMonday] = useState(() => weekStart(TODAY))
   const [selected, setSelected] = useState(TODAY)
   const [adding, setAdding] = useState(false)
@@ -172,6 +173,7 @@ export default function Schedule({ students, bookings, onOpen, onLog, onAddBooki
 
       {adding && (
         <AddBooking
+          plans={plans}
           students={students}
           date={selected}
           onAdd={onAddBooking}

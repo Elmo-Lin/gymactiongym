@@ -11,11 +11,7 @@ export default function Footer() {
       <div className="container footer__grid">
         <div className="footer__brand">
           <Logo light />
-          <p>一位教練、最多兩位學員。位於桃園楊梅的小型肌力訓練工作室。</p>
-          <a className="footer__rating" href={studioInfo.mapUrl} target="_blank" rel="noreferrer">
-            <span aria-hidden="true">★★★★★</span>
-            Google 評價 {studioInfo.rating.score}（{studioInfo.rating.count} 則）
-          </a>
+          <p>位於桃園楊梅的小班制工作室，提供肌力訓練與器械皮拉提斯，每個時段只服務一組學員。</p>
           <a
             className="footer__social"
             href={studioInfo.instagramUrl}

@@ -18,7 +18,7 @@ export default function Pilates() {
   return (
     <>
       <section className="detail-hero">
-        <Photo src={hero.src} alt={hero.alt} className="detail-hero__bg" eager />
+        <Photo src={hero.src} alt={hero.alt} className="detail-hero__bg pilates-hero__photo" eager />
         <div className="detail-hero__overlay" />
         <div className="container detail-hero__content">
           <span className="badge badge--pilates">Pilates</span>

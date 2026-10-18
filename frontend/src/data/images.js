@@ -11,4 +11,6 @@ export const images = {
   studio: unsplash('1558611848-73f7eb4001a1'),
   // 首頁最下方 CTA 背景
   dark: unsplash('1517836357463-d25dfeac3438'),
+  // 健身教室實拍（public/images/fitness/），健身課程方案頁最上方的主視覺
+  fitnessStudio: '/images/fitness/studio.jpg',
 }

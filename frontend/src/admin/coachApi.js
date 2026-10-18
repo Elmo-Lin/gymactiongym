@@ -1,25 +1,30 @@
 import { request } from '../utils/api'
-import { EXERCISES, INITIAL_BOOKINGS, INITIAL_STUDENTS, toISO } from './data.js'
+import { EXERCISES, INITIAL_BOOKINGS, INITIAL_STUDENTS, PILATES_EXERCISES, toISO } from './data.js'
 
 // 教練後台的資料存取。畫面只呼叫這裡的方法，不需要知道資料存在哪裡：
 //   createDemoApi   靜態模式：資料只在記憶體，重新整理就回到示範資料（原本 coachlog 的行為）
 //   createRemoteApi dev／上線模式：透過後端讀寫 Firestore，每次呼叫都帶上教練登入的 token
 //
 // 資料格式（與 coachlog 相同）：
-//   student：{ id, name, gender, age, goal, plans[], phone, note, total, remaining, history[], prs[], deletedAt }
+//   student：{ id, program, name, gender, age, goal, plans[], phone, note, total, remaining, history[], prs[], deletedAt }
+//            program：fitness 健身或 pilates 皮拉提斯，兩邊的學生完全分開（舊資料沒有，視為健身）
 //            deletedAt：刪除的時間（例如 2026-10-18T10:37），沒刪除是 null；刪除的學生可以復原
-//   session：{ id, date, plan, exercises: [{ name, sets: [{ weight, reps }], pr? }], note }
+//   session：{ id, date, plan, exercises: [{ name, sets: [{ weight, reps }], pr?, apparatus?, spring? }], note }
+//            皮拉提斯的動作有 apparatus（器械）與 spring（彈簧），每組只記次數（weight 為 0）
 //   pr：{ exercise, weight, date }，測驗出來的最大重量；exercise 上的 pr 是記錄當下的 PR，用來換算 %
 //   booking（教練排的課，後端叫 lesson，和客人的線上預約分開）：{ id, date, time, studentId, plan, done }
-//   exercises：教練的動作清單（記錄訓練時「新增動作」的選項），還沒改過時沿用 data.js 的 EXERCISES
+//   exercises：教練的動作清單（記錄訓練時「新增動作」的選項），{ fitness: [], pilates: [] }，
+//              還沒改過時沿用 data.js 的 EXERCISES、PILATES_EXERCISES
+
+const DEFAULT_EXERCISES = { fitness: EXERCISES, pilates: PILATES_EXERCISES }
 
 const newId = (prefix) => `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
 export function createDemoApi() {
   return {
     demo: true,
-    load: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
-    importDemo: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: EXERCISES }),
+    load: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: DEFAULT_EXERCISES }),
+    importDemo: async () => ({ students: INITIAL_STUDENTS, bookings: INITIAL_BOOKINGS, exercises: DEFAULT_EXERCISES }),
     createStudent: async (profile) => ({ ...profile, id: newId('s'), total: 0, remaining: 0, history: [], prs: [] }),
     updateStudent: async (id, profile) => ({ ...profile, id }),
     deleteStudent: async () => {
@@ -42,7 +47,11 @@ export function createDemoApi() {
 export function createRemoteApi(getToken) {
   const call = async (path, options = {}) => request(path, { ...options, token: await getToken() })
   // 後端把教練排的課叫 lessons，畫面沿用 coachlog 的 bookings
-  const toScreen = (data) => ({ students: data.students, bookings: data.lessons, exercises: data.exercises ?? EXERCISES })
+  const toScreen = (data) => ({
+    students: data.students,
+    bookings: data.lessons,
+    exercises: { fitness: data.exercises ?? EXERCISES, pilates: data.pilatesExercises ?? PILATES_EXERCISES },
+  })
 
   return {
     demo: false,
@@ -69,6 +78,6 @@ export function createRemoteApi(getToken) {
     addBooking: (booking) => call('/api/admin/lessons', { method: 'POST', body: booking }),
     moveBooking: (id, date) => call(`/api/admin/lessons/${id}`, { method: 'PATCH', body: { date } }),
     deleteBooking: (id) => call(`/api/admin/lessons/${id}`, { method: 'DELETE' }),
-    saveExercises: (exercises) => call('/api/admin/exercises', { method: 'PUT', body: { exercises } }),
+    saveExercises: (program, exercises) => call(`/api/admin/exercises?program=${program}`, { method: 'PUT', body: { exercises } }),
   }
 }

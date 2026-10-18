@@ -4,7 +4,6 @@ import static com.example.backend.support.FirestoreSupport.await;
 import static com.example.backend.support.FirestoreSupport.toInstant;
 
 import com.example.backend.schedule.CoachLessons;
-import com.example.backend.schedule.Plan;
 import com.example.backend.schedule.SlotUsage;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
@@ -40,7 +39,7 @@ public class BookingRepository {
 	// 在同一個 transaction 裡：讀取每個時段和教練排的課 → 確認都還沒被預約、也沒和教練排的課重疊 → 寫入預約並佔用所有時段。
 	// 任何一個時段已被預約，整筆預約都不會寫入。
 	// 兩個人同時搶同一個時段時，Firestore 會讓其中一個等另一個完成後再讀，所以第二個人一定會看到已被預約
-	// 教練在後台排的課只會佔用健身的時段，皮拉提斯不用檢查
+	// 教練在後台排的課只會佔用該學生所屬教室的時段
 	public void create(Booking booking, String program, List<LocalDate> dates) {
 		List<DocumentReference> slotRefs = dates.stream()
 				.map((date) -> slots.document(SlotUsage.docId(program, date.toString(), booking.time())))
@@ -55,9 +54,8 @@ public class BookingRepository {
 					throw new SlotTakenException(snapshot.getString("date"), snapshot.getString("time"));
 				}
 			}
-			List<CoachLessons.Busy> lessons = Plan.FITNESS.equals(program)
-					? CoachLessons.between(firestore, reader(transaction), dates.get(0), dates.get(dates.size() - 1))
-					: List.of();
+			List<CoachLessons.Busy> lessons = CoachLessons.between(firestore, reader(transaction), program, dates.get(0),
+					dates.get(dates.size() - 1));
 			for (LocalDate date : dates) {
 				if (CoachLessons.blocks(lessons, date.toString(), booking.time())) {
 					throw new SlotTakenException(date.toString(), booking.time());

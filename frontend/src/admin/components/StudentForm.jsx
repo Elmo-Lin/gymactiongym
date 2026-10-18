@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import { PLANS } from '../data.js'
 import { Icon } from './ui.jsx'
 
-const GOALS = ['增肌', '減脂', '力量', '提升體能', '臀腿線條', '姿勢矯正', '產後恢復', '傷後回歸']
-const EMPTY = { name: '', gender: '女', age: '', goal: '', plans: ['全身訓練'], phone: '', note: '' }
+const GOALS = ['增肌', '減脂', '力量', '提升體能', '臀腿線條', '姿勢矯正', '產後恢復', '傷後回歸', '改善久坐痠痛', '體態雕塑']
 
 // 新增或編輯學生（coachlog 原本只有示範資料，沒有這個畫面）。堂數不在這裡改，由「購買堂數」與「記錄訓練」增減。
-// 編輯時最下面可以刪除學生（onDelete），刪除的學生可以在學生名單最下面復原
-export default function StudentForm({ student, onCancel, onSave, onDelete }) {
+// 編輯時最下面可以刪除學生（onDelete），刪除的學生可以在學生名單最下面復原。
+// plans：目前類別（健身或皮拉提斯）的課程內容，見 data.js 的 PROGRAMS
+export default function StudentForm({ student, plans, onCancel, onSave, onDelete }) {
   const [form, setForm] = useState(() =>
     student
       ? {
@@ -19,7 +18,7 @@ export default function StudentForm({ student, onCancel, onSave, onDelete }) {
           phone: student.phone,
           note: student.note,
         }
-      : EMPTY,
+      : { name: '', gender: '女', age: '', goal: '', plans: [Object.keys(plans)[0]], phone: '', note: '' },
   )
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -48,8 +47,8 @@ export default function StudentForm({ student, onCancel, onSave, onDelete }) {
       gender: form.gender,
       age: form.age ? Number(form.age) : null,
       goal: form.goal.trim(),
-      // 依 PLANS 的順序排列，記錄訓練時會依序輪替
-      plans: Object.keys(PLANS).filter((p) => form.plans.includes(p)),
+      // 依課程內容的順序排列，記錄訓練時會依序輪替
+      plans: Object.keys(plans).filter((p) => form.plans.includes(p)),
       phone: form.phone.trim(),
       note: form.note.trim(),
     })
@@ -102,7 +101,7 @@ export default function StudentForm({ student, onCancel, onSave, onDelete }) {
 
         <p className="field-title">訓練內容 *（記錄訓練時會依序輪替）</p>
         <div className="tabs">
-          {Object.keys(PLANS).map((p) => (
+          {Object.keys(plans).map((p) => (
             <button
               key={p}
               type="button"

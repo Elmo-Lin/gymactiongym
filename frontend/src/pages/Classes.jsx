@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
-import PageHeader from '../components/PageHeader'
+import Photo from '../components/Photo'
 import SectionHeading from '../components/SectionHeading'
 import { corporatePlan, getPlan, trainingGoals } from '../data/classes'
+import { images } from '../data/images'
 import { planPath } from '../data/programs'
 import { studioInfo } from '../data/schedule'
 import { formatPrice } from '../utils/booking'
@@ -23,9 +24,16 @@ function PlanLink({ plan }) {
 export default function Classes() {
   return (
     <>
-      <PageHeader eyebrow="Fitness" title="健身課程方案">
-        私人教練課皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
-      </PageHeader>
+      {/* 和皮拉提斯課程方案頁相同的照片主視覺 */}
+      <section className="detail-hero">
+        <Photo src={images.fitnessStudio} alt="即動 ACTION GYM 健身教室：深蹲架、臥推椅、壺鈴與沙袋" className="detail-hero__bg fitness-hero__photo" eager />
+        <div className="detail-hero__overlay" />
+        <div className="container detail-hero__content">
+          <span className="badge">Fitness</span>
+          <h1>健身課程方案</h1>
+          <p>私人教練課皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。</p>
+        </div>
+      </section>
 
       {/* id="pricing"：首頁方案卡片上的價格會連到這裡 */}
       <section id="pricing" className="section section--snug section--anchor">

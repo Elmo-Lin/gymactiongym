@@ -914,27 +914,6 @@
   }
 }
 
-.footer__rating {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  margin-bottom: 14px;
-  color: #fff;
-  font-size: 13px;
-  transition: color 0.2s;
-}
-
-.footer__rating span {
-  color: #f4b400;
-  letter-spacing: 0.08em;
-}
-
-.footer__rating:hover {
-  color: var(--green-bright);
-}
-
 /* ---------- Navbar 下拉選單（健身／皮拉提斯） ---------- */
 .nav-group {
   position: relative;

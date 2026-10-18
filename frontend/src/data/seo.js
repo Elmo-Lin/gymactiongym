@@ -19,6 +19,7 @@ const pages = {
   },
   '/classes': {
     title: `健身課程方案與價格・楊梅私人教練課${suffix}`,
+    image: `${SITE_URL}${images.fitnessStudio}`,
     description:
       '楊梅私人教練課程方案：首次體驗課免費，1對1 私人教練單堂 NT$2,000、12／24／36 堂套票平均單堂最低 NT$1,470，1對2 雙人小班每位 NT$750 起，另有企業包班。',
   },

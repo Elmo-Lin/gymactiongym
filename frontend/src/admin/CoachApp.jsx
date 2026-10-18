@@ -4,8 +4,20 @@ import Students from './components/Students.jsx'
 import StudentDetail from './components/StudentDetail.jsx'
 import StudentForm from './components/StudentForm.jsx'
 import LogSession from './components/LogSession.jsx'
+import PilatesLogSession from './components/PilatesLogSession.jsx'
 import Schedule from './components/Schedule.jsx'
 import { Icon } from './components/ui.jsx'
+import { PROGRAMS, programOf } from './data.js'
+
+// 上次看的是健身還是皮拉提斯，下次打開後台時沿用
+const PROGRAM_KEY = 'coach:program'
+const loadProgram = () => {
+  try {
+    return PROGRAMS[localStorage.getItem(PROGRAM_KEY)] ? localStorage.getItem(PROGRAM_KEY) : 'fitness'
+  } catch {
+    return 'fitness'
+  }
+}
 
 const TABS = [
   { id: 'today', label: '今天', icon: 'home' },
@@ -18,7 +30,9 @@ const TABS = [
 export default function CoachApp({ api, user, onLogout }) {
   const [students, setStudents] = useState(null)
   const [bookings, setBookings] = useState([])
-  const [exercises, setExercises] = useState([])
+  const [exercises, setExercises] = useState({ fitness: [], pilates: [] })
+  // 目前看的是健身還是皮拉提斯：兩邊的學生、堂數、排課與訓練紀錄完全分開
+  const [program, setProgram] = useState(loadProgram)
   const [loadError, setLoadError] = useState(null)
   // route: { tab } 或 { tab, studentId } 或 { tab, studentId, log: true, bookingId } 或 { tab, form: 'new' | 'edit', studentId }
   const [route, setRoute] = useState({ tab: 'today' })
@@ -79,6 +93,25 @@ export default function CoachApp({ api, user, onLogout }) {
   }
 
   if (!students) return <Splash title="載入中…" />
+
+  const switchProgram = (id) => {
+    setProgram(id)
+    try {
+      localStorage.setItem(PROGRAM_KEY, id)
+    } catch {
+      // 無痕模式等情況存不了，下次打開回到健身
+    }
+    go({ tab: route.tab })
+  }
+
+  // 只顯示目前類別的學生；刪除的學生和他的課都不出現在各個畫面，只在學生名單最下面的「已刪除」
+  const config = PROGRAMS[program]
+  const programStudents = students.filter((s) => programOf(s) === program)
+  const activeStudents = programStudents.filter((s) => !s.deletedAt)
+  const deletedStudents = programStudents.filter((s) => s.deletedAt)
+  const activeBookings = bookings.filter((b) => activeStudents.some((s) => s.id === b.studentId))
+  const current = route.studentId && activeStudents.find((s) => s.id === route.studentId)
+  const library = exercises[program]
 
   const openStudent = (studentId) => go({ tab: route.tab, studentId })
   const startLog = (studentId, bookingId) => go({ tab: route.tab, studentId, log: true, bookingId })
@@ -153,7 +186,7 @@ export default function CoachApp({ api, user, onLogout }) {
         showToast(`已更新 ${profile.name} 的資料`)
         go({ tab: route.tab, studentId: route.studentId })
       } else {
-        const created = await api.createStudent(profile)
+        const created = await api.createStudent({ ...profile, program })
         setStudents((list) => [...list, created])
         showToast(`已新增學生 ${created.name}`)
         go({ tab: 'students', studentId: created.id })
@@ -204,7 +237,7 @@ export default function CoachApp({ api, user, onLogout }) {
       setStudents(data.students)
       setBookings(data.bookings)
       setExercises(data.exercises)
-      showToast(`已匯入 ${data.students.length} 位示範學生`)
+      showToast(`已匯入 ${data.students.length} 位示範學生（健身與皮拉提斯）`)
     } catch {
       showToast('匯入失敗，請再試一次')
     } finally {
@@ -250,7 +283,8 @@ export default function CoachApp({ api, user, onLogout }) {
   const moveBooking = (bookingId, date) => {
     const booking = bookings.find((b) => b.id === bookingId)
     const student = students.find((s) => s.id === booking.studentId)
-    const clash = bookings.find((b) => b.id !== bookingId && b.date === date && b.time === booking.time)
+    // 只和同一間教室的課比較：健身和皮拉提斯同一個時間不算重疊
+    const clash = activeBookings.find((b) => b.id !== bookingId && b.date === date && b.time === booking.time)
     setBookings((list) => list.map((b) => (b.id === bookingId ? { ...b, date } : b)))
     persist(api.moveBooking(bookingId, date))
     const when = `${date.slice(5).replace('-', '/')} ${booking.time}`
@@ -265,17 +299,11 @@ export default function CoachApp({ api, user, onLogout }) {
     })
   }
 
-  // 教練的動作清單：新增自訂動作或移除不用的動作，畫面先更新再存檔
+  // 教練的動作清單（健身與皮拉提斯各一份）：新增自訂動作或移除不用的動作，畫面先更新再存檔
   const saveExercises = (list) => {
-    setExercises(list)
-    persist(api.saveExercises(list))
+    setExercises((all) => ({ ...all, [program]: list }))
+    persist(api.saveExercises(program, list))
   }
-
-  // 刪除的學生和他的課都不出現在各個畫面，只在學生名單最下面的「已刪除」
-  const activeStudents = students.filter((s) => !s.deletedAt)
-  const deletedStudents = students.filter((s) => s.deletedAt)
-  const activeBookings = bookings.filter((b) => activeStudents.some((s) => s.id === b.studentId))
-  const current = route.studentId && activeStudents.find((s) => s.id === route.studentId)
 
   let page
   if (route.form) {
@@ -283,18 +311,20 @@ export default function CoachApp({ api, user, onLogout }) {
       <StudentForm
         key={route.form + (route.studentId ?? '')}
         student={route.form === 'edit' ? current : null}
+        plans={config.plans}
         onCancel={() => go(route.form === 'edit' ? { tab: route.tab, studentId: route.studentId } : { tab: route.tab })}
         onSave={saveStudent}
         onDelete={route.form === 'edit' ? () => deleteStudent(route.studentId) : null}
       />
     )
   } else if (current && route.log) {
+    const Log = program === 'pilates' ? PilatesLogSession : LogSession
     page = (
-      <LogSession
+      <Log
         key={current.id}
         student={current}
         booking={bookings.find((b) => b.id === route.bookingId)}
-        library={exercises}
+        library={library}
         onLibraryChange={saveExercises}
         onCancel={() => go({ tab: route.tab, studentId: current.id })}
         onSave={(session) => saveSession(current.id, session, route.bookingId)}
@@ -312,14 +342,17 @@ export default function CoachApp({ api, user, onLogout }) {
         onEdit={() => go({ tab: route.tab, studentId: current.id, form: 'edit' })}
         onAddPackage={(n) => addPackage(current.id, n)}
         onSetPackage={(total, remaining) => setPackage(current.id, total, remaining)}
-        library={exercises}
+        library={library}
+        pilates={program === 'pilates'}
         onSavePr={(pr) => savePr(current.id, pr)}
       />
     )
-  } else if (students.length === 0) {
+  } else if (programStudents.length === 0) {
     page = (
       <Welcome
-        demo={api.demo}
+        label={config.label}
+        // 匯入示範資料只能在資料庫完全沒有學生時使用
+        canImport={!api.demo && students.length === 0}
         importing={importing}
         onCreate={() => go({ tab: 'students', form: 'new' })}
         onImport={importDemo}
@@ -339,8 +372,10 @@ export default function CoachApp({ api, user, onLogout }) {
   } else if (route.tab === 'schedule') {
     page = (
       <Schedule
+        key={program}
         students={activeStudents}
         bookings={activeBookings}
+        plans={config.plans}
         onOpen={openStudent}
         onLog={startLog}
         onAddBooking={addBooking}
@@ -366,6 +401,7 @@ export default function CoachApp({ api, user, onLogout }) {
         <div className="brand">
           即動<span>教練後台</span>
         </div>
+        <ProgramSwitch program={program} onChange={switchProgram} />
         <nav className="topnav">
           {TABS.map((t) => (
             <button key={t.id} className={route.tab === t.id ? 'active' : ''} onClick={() => go({ tab: t.id })}>
@@ -380,6 +416,7 @@ export default function CoachApp({ api, user, onLogout }) {
 
       <main className="main">
         <div className="account-bar">
+          <ProgramSwitch program={program} onChange={switchProgram} />
           <Account demo={api.demo} user={user} onLogout={onLogout} />
         </div>
         {page}
@@ -410,6 +447,26 @@ export default function CoachApp({ api, user, onLogout }) {
   )
 }
 
+// 健身／皮拉提斯切換：電腦版在上方導覽列，手機版在畫面最上面
+function ProgramSwitch({ program, onChange }) {
+  return (
+    <div className="program-switch" role="radiogroup" aria-label="課程類別">
+      {Object.values(PROGRAMS).map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          role="radio"
+          aria-checked={program === p.id}
+          className={program === p.id ? 'active' : ''}
+          onClick={() => program !== p.id && onChange(p.id)}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // 目前的帳號：示範模式提醒資料不會儲存（示範登入時可以登出）；登入後顯示 Email 與登出
 function Account({ demo, user, onLogout }) {
   if (demo) {
@@ -435,28 +492,28 @@ function Account({ demo, user, onLogout }) {
   )
 }
 
-// 還沒有學生時：新增第一位學生，或匯入 coachlog 的示範資料
-function Welcome({ demo, importing, onCreate, onImport }) {
+// 這個類別還沒有學生時：新增第一位學生；整個資料庫都沒有學生時，也可以匯入 coachlog 的示範資料
+function Welcome({ label, canImport, importing, onCreate, onImport }) {
   return (
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>歡迎使用教練後台</h1>
+          <h1>歡迎使用{label}教練後台</h1>
         </div>
       </header>
       <section className="block welcome">
-        <p>還沒有任何學生。新增第一位學生後，就可以開始排課、記錄訓練。</p>
+        <p>{label}還沒有任何學生。新增第一位學生後，就可以開始排課、記錄訓練。</p>
         <div className="btn-row">
           <button className="btn btn-ink btn-lg" onClick={onCreate}>
             新增學生
           </button>
-          {!demo && (
+          {canImport && (
             <button className="btn btn-line btn-lg" onClick={onImport} disabled={importing}>
               {importing ? '匯入中…' : '匯入示範資料'}
             </button>
           )}
         </div>
-        {!demo && <p className="muted">示範資料包含 8 位學生、訓練紀錄與兩週的排課，方便先試用各項功能。</p>}
+        {canImport && <p className="muted">示範資料包含健身 8 位、皮拉提斯 3 位學生，以及訓練紀錄與兩週的排課，方便先試用各項功能。</p>}
       </section>
     </div>
   )

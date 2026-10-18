@@ -15,6 +15,7 @@ import com.example.backend.admin.CoachModels.SessionResult;
 import com.example.backend.admin.CoachModels.Student;
 import com.example.backend.admin.CoachModels.StudentRequest;
 import com.example.backend.admin.CoachModels.TrainingSession;
+import com.example.backend.schedule.Plan;
 import com.example.backend.schedule.SlotService;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
@@ -41,7 +42,8 @@ import org.springframework.web.server.ResponseStatusException;
 //   students          學生基本資料、堂數與 PR
 //   trainingSessions  訓練紀錄（studentId 指向學生）
 //   lessons           教練排的課（和客人在網站上的預約 bookings 分開）
-//   coachSettings     後台設定，例如 coachSettings/exercises 存教練的動作清單
+//   coachSettings     後台設定：coachSettings/exercises、coachSettings/pilatesExercises 存健身與皮拉提斯的動作清單
+// 學生與排課的 program 欄位區分健身與皮拉提斯；加入皮拉提斯之前的資料沒有這個欄位，都是健身
 @Repository
 public class CoachRepository {
 
@@ -64,12 +66,15 @@ public class CoachRepository {
 
 	private final DocumentReference exercisesDoc;
 
+	private final DocumentReference pilatesExercisesDoc;
+
 	public CoachRepository(Firestore firestore) {
 		this.firestore = firestore;
 		this.students = firestore.collection("students");
 		this.sessions = firestore.collection("trainingSessions");
 		this.lessons = firestore.collection("lessons");
 		this.exercisesDoc = firestore.collection("coachSettings").document("exercises");
+		this.pilatesExercisesDoc = firestore.collection("coachSettings").document("pilatesExercises");
 	}
 
 	public AdminData load() {
@@ -89,31 +94,33 @@ public class CoachRepository {
 				.sorted(Comparator.comparing((Lesson l) -> l.date() + l.time()))
 				.toList();
 
-		return new AdminData(studentList, lessonList, loadExercises());
+		return new AdminData(studentList, lessonList, loadExercises(exercisesDoc), loadExercises(pilatesExercisesDoc));
 	}
 
 	// 教練的動作清單；還沒儲存過時回傳 null，前端會使用預設清單
 	@SuppressWarnings("unchecked")
-	private List<String> loadExercises() {
-		DocumentSnapshot doc = await(exercisesDoc.get());
+	private List<String> loadExercises(DocumentReference ref) {
+		DocumentSnapshot doc = await(ref.get());
 		return doc.exists() ? (List<String>) doc.get("names") : null;
 	}
 
-	// 儲存動作清單：去掉前後空白與重複的名稱，保留原本的順序
-	public List<String> saveExercises(List<String> names) {
+	// 儲存健身或皮拉提斯的動作清單：去掉前後空白與重複的名稱，保留原本的順序
+	public List<String> saveExercises(String program, List<String> names) {
 		List<String> cleaned = names.stream().map(String::trim).filter((name) -> !name.isEmpty()).distinct().toList();
-		await(exercisesDoc.set(Map.of("names", cleaned, "updatedAt", Timestamp.now())));
+		DocumentReference ref = Plan.PILATES.equals(program) ? pilatesExercisesDoc : exercisesDoc;
+		await(ref.set(Map.of("names", cleaned, "updatedAt", Timestamp.now())));
 		return cleaned;
 	}
 
 	public Student createStudent(StudentRequest request) {
 		DocumentReference ref = students.document();
 		Map<String, Object> data = profileMap(request);
+		data.put("program", programOf(request.program()));
 		data.put("total", 0);
 		data.put("remaining", 0);
 		data.put("createdAt", Timestamp.now());
 		await(ref.create(data));
-		return toStudent(ref.getId(), request, 0, 0);
+		return toStudent(ref.getId(), request, 0, 0, programOf(request.program()));
 	}
 
 	public Student updateStudent(String id, StudentRequest request) {
@@ -124,7 +131,8 @@ public class CoachRepository {
 				throw notFound("找不到這位學生");
 			}
 			tx.update(ref, profileMap(request));
-			return toStudent(id, request, intValue(snapshot.get("total")), intValue(snapshot.get("remaining")));
+			return toStudent(id, request, intValue(snapshot.get("total")), intValue(snapshot.get("remaining")),
+					programOf(snapshot.getString("program")));
 		}));
 	}
 
@@ -331,7 +339,8 @@ public class CoachRepository {
 		for (int i = 0; i < request.students().size(); i++) {
 			Student student = request.students().get(i);
 			Map<String, Object> data = profileMap(new StudentRequest(student.name(), student.gender(), student.age(),
-					student.goal(), student.plans(), student.phone(), student.note()));
+					student.goal(), student.plans(), student.phone(), student.note(), student.program()));
+			data.put("program", programOf(student.program()));
 			data.put("total", student.total());
 			data.put("remaining", student.remaining());
 			data.put("prs", student.prs() == null ? List.of() : student.prs().stream().map(CoachRepository::prMap).toList());
@@ -369,6 +378,11 @@ public class CoachRepository {
 
 	// ---------- 與 Firestore 文件互相轉換 ----------
 
+	// 沒有 program 的舊資料都是健身
+	static String programOf(String program) {
+		return program == null ? Plan.FITNESS : program;
+	}
+
 	private static Map<String, Object> profileMap(StudentRequest request) {
 		Map<String, Object> data = new HashMap<>();
 		data.put("name", request.name());
@@ -381,9 +395,9 @@ public class CoachRepository {
 		return data;
 	}
 
-	private static Student toStudent(String id, StudentRequest request, int total, int remaining) {
+	private static Student toStudent(String id, StudentRequest request, int total, int remaining, String program) {
 		return new Student(id, request.name(), request.gender(), request.age(), request.goal(), request.plans(),
-				request.phone(), request.note(), total, remaining, List.of(), List.of(), null);
+				request.phone(), request.note(), total, remaining, List.of(), List.of(), null, program);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -392,7 +406,8 @@ public class CoachRepository {
 		List<String> plans = (List<String>) doc.get("plans");
 		return new Student(doc.getId(), doc.getString("name"), doc.getString("gender"), age == null ? null : age.intValue(),
 				doc.getString("goal"), plans == null ? List.of() : plans, doc.getString("phone"), doc.getString("note"),
-				intValue(doc.get("total")), intValue(doc.get("remaining")), history, toPrs(doc), doc.getString("deletedAt"));
+				intValue(doc.get("total")), intValue(doc.get("remaining")), history, toPrs(doc), doc.getString("deletedAt"),
+				programOf(doc.getString("program")));
 	}
 
 	private static Map<String, Object> prMap(PersonalRecord pr) {
@@ -425,6 +440,12 @@ public class CoachRepository {
 			if (exercise.pr() != null) {
 				data.put("pr", exercise.pr());
 			}
+			if (exercise.apparatus() != null) {
+				data.put("apparatus", exercise.apparatus());
+			}
+			if (exercise.spring() != null) {
+				data.put("spring", exercise.spring());
+			}
 			return data;
 		}).toList();
 
@@ -448,7 +469,8 @@ public class CoachRepository {
 					return new Exercise((String) exercise.get("name"), sets.stream()
 							.map((set) -> new ExerciseSet(((Number) set.get("weight")).doubleValue(), intValue(set.get("reps")),
 									set.get("pct") == null ? null : intValue(set.get("pct"))))
-							.toList(), pr == null ? null : pr.doubleValue());
+							.toList(), pr == null ? null : pr.doubleValue(), (String) exercise.get("apparatus"),
+							(String) exercise.get("spring"));
 				}).toList(),
 				doc.getString("note"));
 	}

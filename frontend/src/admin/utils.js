@@ -25,12 +25,13 @@ export function relativeDate(iso) {
   return shortDate(iso)
 }
 
-// 找出學生某個動作最近一次的紀錄；pr 是當時的 PR（沒有就是 undefined）
+// 找出學生某個動作最近一次的紀錄；pr 是當時的 PR（沒有就是 undefined）。
+// 皮拉提斯的動作另外有 apparatus（器械）與 spring（彈簧）
 export function lastRecord(student, exerciseName) {
   for (let i = student.history.length - 1; i >= 0; i--) {
     const session = student.history[i]
     const ex = session.exercises.find((e) => e.name === exerciseName)
-    if (ex) return { date: session.date, sets: ex.sets, pr: ex.pr }
+    if (ex) return { date: session.date, sets: ex.sets, pr: ex.pr, apparatus: ex.apparatus, spring: ex.spring }
   }
   return null
 }

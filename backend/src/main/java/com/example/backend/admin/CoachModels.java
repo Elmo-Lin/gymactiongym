@@ -22,12 +22,16 @@ public final class CoachModels {
 
 	static final String TIME = "\\d{2}:\\d{2}";
 
-	// 訓練內容，需與前端 admin/data.js 的 PLANS 一致
-	static final String PLAN = "下肢訓練|上肢訓練|全身訓練";
+	// 訓練內容，需與前端 admin/data.js 的 PLANS（健身）、PILATES_PLANS（皮拉提斯）一致
+	static final String PLAN = "下肢訓練|上肢訓練|全身訓練|核心穩定|下肢雕塑|上肢體態|伸展放鬆";
+
+	// 學生屬於健身或皮拉提斯，兩邊的學生、堂數、排課與訓練紀錄完全分開（一個人兩種都上就各建一筆）
+	static final String PROGRAM = "fitness|pilates";
 
 	// 學生。total 為累計購買堂數，remaining 為剩餘堂數；history 為訓練紀錄（依日期排序）
 	// prs 為測驗出來的 PR（依日期排序，保留每一次），記錄訓練時用來換算 %
 	// deletedAt 為刪除的時間（台灣時間，例如 2026-10-18T10:37），沒刪除是 null；刪除的學生可以復原
+	// program 為 fitness 健身或 pilates 皮拉提斯；加入皮拉提斯之前建立的學生沒有這個欄位，都是健身
 	public record Student(
 			String id,
 			String name,
@@ -41,7 +45,8 @@ public final class CoachModels {
 			int remaining,
 			List<TrainingSession> history,
 			List<PersonalRecord> prs,
-			String deletedAt) {
+			String deletedAt,
+			String program) {
 	}
 
 	// 某個動作的 PR（最大重量）。同一個動作同一天只會有一筆，再輸入一次就會蓋過
@@ -60,11 +65,15 @@ public final class CoachModels {
 			@Size(max = 500) String note) {
 	}
 
-	// pr 是記錄當下這個動作的 PR（沒有 PR 的動作是 null），之後 PR 更新了，舊紀錄的 % 仍然正確
+	// pr 是記錄當下這個動作的 PR（沒有 PR 的動作是 null），之後 PR 更新了，舊紀錄的 % 仍然正確。
+	// 皮拉提斯的動作另外記 apparatus（器械，例如 Reformer）與 spring（彈簧，例如 2紅1藍），每組只記次數、weight 為 0；
+	// 健身的動作這兩個欄位是 null
 	public record Exercise(
 			@NotBlank @Size(max = 30) String name,
 			@NotEmpty @Size(max = 20) List<@Valid ExerciseSet> sets,
-			@Positive @Max(1000) Double pr) {
+			@Positive @Max(1000) Double pr,
+			@Size(max = 20) String apparatus,
+			@Size(max = 30) String spring) {
 	}
 
 	// pct 是這組用了 PR 的幾 %（教練指定的數字，重量是換算後四捨五入的結果）；沒有 PR 的動作是 null
@@ -75,7 +84,8 @@ public final class CoachModels {
 	public record Lesson(String id, String date, String time, String studentId, String plan, boolean done) {
 	}
 
-	// 新增或修改學生的基本資料；堂數另外由購買堂數、排課增減
+	// 新增或修改學生的基本資料；堂數另外由購買堂數、排課增減。
+	// program 只在新增時使用（沒有就是健身），修改時沿用原本的類別
 	public record StudentRequest(
 			@NotBlank @Size(max = 50) String name,
 			@NotNull @Pattern(regexp = "男|女") String gender,
@@ -83,7 +93,8 @@ public final class CoachModels {
 			@Size(max = 30) String goal,
 			@NotEmpty List<@Pattern(regexp = PLAN) String> plans,
 			@Size(max = 20) String phone,
-			@Size(max = 500) String note) {
+			@Size(max = 500) String note,
+			@Pattern(regexp = PROGRAM) String program) {
 	}
 
 	public record PackageRequest(@Min(1) @Max(100) int count) {
@@ -118,8 +129,10 @@ public final class CoachModels {
 	public record MoveLessonRequest(@NotNull @Pattern(regexp = DATE) String date) {
 	}
 
-	// 後台開啟時一次載入的全部資料。exercises 為教練的動作清單，還沒改過時是 null（前端改用預設清單）
-	public record AdminData(List<Student> students, List<Lesson> lessons, List<String> exercises) {
+	// 後台開啟時一次載入的全部資料。exercises、pilatesExercises 為健身與皮拉提斯的動作清單，
+	// 還沒改過時是 null（前端改用預設清單）
+	public record AdminData(List<Student> students, List<Lesson> lessons, List<String> exercises,
+			List<String> pilatesExercises) {
 	}
 
 	// 儲存教練的動作清單（記錄訓練時「新增動作」的選項）

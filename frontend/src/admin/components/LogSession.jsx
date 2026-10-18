@@ -30,7 +30,7 @@ function defaultPlan(student, booking) {
   return student.plans[(idx + 1) % student.plans.length]
 }
 
-function Stepper({ value, step, onChange, label }) {
+export function Stepper({ value, step, onChange, label }) {
   return (
     <div className="stepper">
       <button type="button" aria-label={`${label}減少`} onClick={() => onChange(Math.max(0, value - step))}>
@@ -121,7 +121,7 @@ function PercentPicker({ pr, sets, step, onPick }) {
 }
 
 // 新增動作：從動作清單挑、輸入自訂動作，或管理清單（教練自己的動作清單，存在資料庫）
-function ExercisePicker({ library, available, adding, onPick, onCreate, onRemove }) {
+export function ExercisePicker({ library, available, adding, onPick, onCreate, onRemove }) {
   const [newName, setNewName] = useState('')
   const [managing, setManaging] = useState(false)
 
