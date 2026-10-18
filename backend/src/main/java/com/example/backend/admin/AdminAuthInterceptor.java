@@ -17,6 +17,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 // 保護 /api/admin/**：必須帶著 Google 登入的 Firebase ID token，而且 Email 在允許名單裡。
 //   沒有 token 或 token 無效 → 401；登入了但不是允許的帳號 → 403
+// app.admin.open=true 時不檢查（前端 adminLogin 為 'none'，不用登入），任何人都能讀寫後台資料
 @Component
 public class AdminAuthInterceptor implements HandlerInterceptor {
 
@@ -24,8 +25,12 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
 
 	private final Set<String> allowedEmails;
 
-	public AdminAuthInterceptor(FirebaseAuth firebaseAuth, @Value("${app.admin.emails:}") String[] emails) {
+	private final boolean open;
+
+	public AdminAuthInterceptor(FirebaseAuth firebaseAuth, @Value("${app.admin.emails:}") String[] emails,
+			@Value("${app.admin.open:false}") boolean open) {
 		this.firebaseAuth = firebaseAuth;
+		this.open = open;
 		this.allowedEmails = Arrays.stream(emails)
 				.map((email) -> email.trim().toLowerCase())
 				.filter((email) -> !email.isEmpty())
@@ -35,7 +40,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		// 瀏覽器跨網域呼叫前的 OPTIONS 詢問不會帶 token，交給 CORS 設定處理
-		if (CorsUtils.isPreFlightRequest(request)) {
+		if (open || CorsUtils.isPreFlightRequest(request)) {
 			return true;
 		}
 
