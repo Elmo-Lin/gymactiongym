@@ -21,7 +21,7 @@ export default function Pilates() {
         <Photo src={hero.src} alt={hero.alt} className="detail-hero__bg pilates-hero__photo" eager />
         <div className="detail-hero__overlay" />
         <div className="container detail-hero__content">
-          <span className="badge badge--pilates">Pilates</span>
+          <span className="badge badge--program">Pilates</span>
           <h1>皮拉提斯課程方案</h1>
           <p>{pilates.tagline}</p>
         </div>

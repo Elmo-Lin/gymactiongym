@@ -2432,7 +2432,8 @@ a.price:hover {
 }
 
 /* ---------- Pilates ---------- */
-.badge--pilates {
+/* 健身／皮拉提斯的標籤（課程方案頁最上方、首頁的兩種課程），兩邊同一個顏色 */
+.badge--program {
   background: var(--charcoal-3);
 }
 
@@ -2544,10 +2545,6 @@ a.price:hover {
   align-items: flex-start;
   gap: 12px;
   padding: 32px;
-}
-
-.program-card .badge--program {
-  background: var(--charcoal-3);
 }
 
 .program-card__body h3 {

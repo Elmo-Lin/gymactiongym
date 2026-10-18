@@ -29,7 +29,7 @@ export default function Classes() {
         <Photo src={images.fitnessStudio} alt="即動 ACTION GYM 健身教室：深蹲架、臥推椅、壺鈴與沙袋" className="detail-hero__bg fitness-hero__photo" eager />
         <div className="detail-hero__overlay" />
         <div className="container detail-hero__content">
-          <span className="badge">Fitness</span>
+          <span className="badge badge--program">Fitness</span>
           <h1>健身課程方案</h1>
           <p>私人教練課皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。</p>
         </div>
