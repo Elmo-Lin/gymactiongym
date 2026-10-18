@@ -22,6 +22,11 @@ export const mode = import.meta.env.MODE
 // 不認得的 mode 一律當成靜態網頁，避免誤打 API
 export const config = modes[mode] ?? modes.static
 
+// 教練後台的登入方式（只影響 dev 與上線模式，靜態模式一律直接進入示範資料）：
+//   'demo'    示範登入：按一下就進入，使用示範資料。不載入 Firebase、不呼叫後端，資料只在瀏覽器裡，重新整理就還原
+//   'google'  Google 登入：教練用 Google 帳號登入，透過後端讀寫 Firestore
+export const adminLogin = 'demo'
+
 // 教練後台的 Google 登入（Firebase Authentication）。dev 與上線模式共用同一個 Firebase 專案。
 // 值從 Firebase Console → 專案設定 → 一般 → 你的應用程式（網頁）複製過來；這些值本來就會公開在網頁裡，不是密碼。
 // 還沒設定時改成 null，後台會顯示設定說明，不會壞掉。

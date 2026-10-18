@@ -317,9 +317,20 @@ export default function CoachApp({ api, user, onLogout }) {
   )
 }
 
-// 目前的帳號：示範模式提醒資料不會儲存；登入後顯示 Email 與登出
+// 目前的帳號：示範模式提醒資料不會儲存（示範登入時可以登出）；登入後顯示 Email 與登出
 function Account({ demo, user, onLogout }) {
-  if (demo) return <span className="demo-badge">示範模式・資料不會儲存</span>
+  if (demo) {
+    return (
+      <span className="account">
+        <span className="demo-badge">示範模式・資料不會儲存</span>
+        {onLogout && (
+          <button className="text-btn" onClick={onLogout}>
+            登出
+          </button>
+        )}
+      </span>
+    )
+  }
   if (!user) return null
   return (
     <span className="account">
