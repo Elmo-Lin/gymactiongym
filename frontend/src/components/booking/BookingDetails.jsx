@@ -1,5 +1,5 @@
-import { coach } from '../../data/coach'
 import { trainingGoals } from '../../data/classes'
+import { getProgram } from '../../data/programs'
 import { addDays, formatDate, WEEKDAY_LABELS } from '../../utils/date'
 
 // 預約確認頁與完成頁共用的明細。預約只確認時間，不顯示價格（方案與價格見課程方案頁）
@@ -9,7 +9,7 @@ export default function BookingDetails({ booking, showContact = true }) {
 
   const rows = [
     ['課程方案', plan.name],
-    ['教練', coach.name],
+    ['教練', getProgram(plan.program).coach.name],
     ['上課方式', mode === 'weekly' ? `固定每週・${booking.weeks} 週` : '單次上課'],
     mode === 'weekly'
       ? ['日期', `每${WEEKDAY_LABELS[booking.weekday]}・${formatDate(booking.startDate)} 起至 ${formatDate(addDays(booking.startDate, (booking.weeks - 1) * 7))}`]

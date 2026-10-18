@@ -7,7 +7,8 @@ import TimeStep from '../components/booking/TimeStep'
 import Button from '../components/Button'
 import Icon from '../components/Icon'
 import StepIndicator from '../components/StepIndicator'
-import { getPlan, weeklyOptions } from '../data/classes'
+import { getPlan, peopleLabel, weeklyOptions } from '../data/classes'
+import { getProgram, programs } from '../data/programs'
 import { SESSION_MINUTES } from '../data/schedule'
 import { SlotTakenError, submitBooking } from '../services/bookings'
 import { BOOKING_RANGE_DAYS, useSlots } from '../services/slots'
@@ -17,14 +18,20 @@ import { clearDraft, loadDraft, saveDraft } from '../utils/storage'
 import { normalizePhone, validateInfo } from '../utils/validation'
 
 const DRAFT_KEY = 'action-gym:booking-draft'
-const DRAFT_VERSION = 1
+// 加入皮拉提斯（program、people）後改成 2，舊版的草稿不再沿用
+const DRAFT_VERSION = 2
 
-const emptyForm = { name: '', email: '', phone: '', partners: ['', ''], goal: '', experience: 'none', note: '', agree: false }
+// partners：同行朋友的姓名，最多 3 位（皮拉提斯團課最多 4 人）
+const emptyForm = { name: '', email: '', phone: '', partners: ['', '', ''], goal: '', experience: 'none', note: '', agree: false }
 
+// program：健身或皮拉提斯，決定可以選的方案與要查哪間教室的時段；選了方案之後以方案的類別為準。
+// people：人數可以選的方案（皮拉提斯團課）才有，其他方案的人數固定
 const emptyState = {
   version: DRAFT_VERSION,
   step: 1,
+  program: 'fitness',
   planId: null,
+  people: null,
   mode: 'single',
   date: null,
   time: null,
@@ -41,16 +48,16 @@ function initialState(classId, params) {
   const time = params.get('time')
   const hasSlot = isValidISODate(date) && isValidTime(time)
 
-  if (!classId && !hasSlot) {
+  // 沒有指定方案、時段或課程類別（例如導覽列的「立即預約」）時，接著上次沒填完的草稿
+  if (!classId && !hasSlot && !params.get('program')) {
     const draft = loadDraft(DRAFT_KEY)
     if (draft?.version === DRAFT_VERSION) return { ...emptyState, ...draft, form: { ...emptyForm, ...draft.form } }
     return emptyState
   }
 
-  const state = { ...emptyState }
+  const state = { ...emptyState, program: programs[params.get('program')] ? params.get('program') : 'fitness' }
   if (plan) {
-    state.planId = plan.id
-    state.step = 2
+    Object.assign(state, { program: plan.program, planId: plan.id, people: plan.minPeople ?? null, step: 2 })
   }
   if (hasSlot) {
     Object.assign(state, { date, time, weekday: weekdayOf(date), weeklyTime: time, startDate: date })
@@ -63,8 +70,8 @@ function resolveSelection(state, slots) {
   const plan = getPlan(state.planId)
   if (!plan) return null
   const mode = plan.singleOnly ? 'single' : state.mode
-  // 時段由會員包下，上課人數就是方案人數（會員 + 自己帶的朋友）
-  const people = plan.capacity
+  // 時段由會員包下，上課人數是會員 + 自己帶的朋友：團課在人數範圍內自己選，其他方案就是方案人數
+  const people = plan.minPeople ? Math.min(Math.max(state.people ?? plan.minPeople, plan.minPeople), plan.capacity) : plan.capacity
 
   if (mode === 'single') {
     if (!state.date || !state.time) return null
@@ -104,8 +111,9 @@ export default function Booking() {
   const navigate = useNavigate()
 
   const today = todayISO()
-  const { index: slots, error: slotsError, reload: reloadSlots } = useSlots(today, addDays(today, BOOKING_RANGE_DAYS))
   const [state, setState] = useState(() => initialState(classId, params))
+  const program = getProgram(getPlan(state.planId)?.program ?? state.program)
+  const { index: slots, error: slotsError, reload: reloadSlots } = useSlots(today, addDays(today, BOOKING_RANGE_DAYS), program.id)
   const [touched, setTouched] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
@@ -139,7 +147,7 @@ export default function Booking() {
 
   const selectPlan = (planId) => {
     const next = getPlan(planId)
-    update({ planId, mode: next.singleOnly ? 'single' : state.mode })
+    update({ planId, mode: next.singleOnly ? 'single' : state.mode, people: next.minPeople ?? null })
   }
 
   const nextFromInfo = () => {
@@ -228,7 +236,15 @@ export default function Booking() {
 
         <div className="booking__layout">
           <div className="booking__main">
-            {step === 1 && <PlanStep planId={state.planId} presetSlot={presetSlot} onSelect={selectPlan} />}
+            {step === 1 && (
+              <PlanStep
+                program={program}
+                planId={state.planId}
+                presetSlot={presetSlot}
+                onSelect={selectPlan}
+                onProgramChange={(id) => update({ program: id, planId: null, people: null })}
+              />
+            )}
             {step === 2 && <TimeStep state={{ ...state, mode: plan.singleOnly ? 'single' : state.mode }} update={update} slots={slots} />}
             {step === 3 && (
               <InfoStep
@@ -238,6 +254,9 @@ export default function Booking() {
                 touched={touched}
                 onBlur={(k) => setTouched((t) => ({ ...t, [k]: true }))}
                 partnerCount={partnerCount}
+                plan={plan}
+                people={selection.people}
+                onPeopleChange={(people) => update({ people })}
               />
             )}
             {step === 4 && (
@@ -257,7 +276,7 @@ export default function Booking() {
                   上一步
                 </Button>
               ) : (
-                <Link to="/schedule" className="text-btn">
+                <Link to={program.schedulePath} className="text-btn">
                   先看看課表
                 </Link>
               )}
@@ -305,7 +324,7 @@ export default function Booking() {
                     </div>
                     <div>
                       <dt>人數</dt>
-                      <dd>{plan.capacity} 人</dd>
+                      <dd>{selection?.people ?? peopleLabel(plan)} 人</dd>
                     </div>
                   </dl>
                 </>

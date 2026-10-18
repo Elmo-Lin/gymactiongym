@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import SectionHeading from '../components/SectionHeading'
 import { corporatePlan, getPlan, trainingGoals } from '../data/classes'
+import { planPath } from '../data/programs'
 import { studioInfo } from '../data/schedule'
 import { formatPrice } from '../utils/booking'
 
@@ -12,7 +13,7 @@ const duo = getPlan('one-on-two')
 // 價目表標題旁的連結，連到方案介紹頁（課程內容、適合對象）
 function PlanLink({ plan }) {
   return (
-    <Link to={`/classes/${plan.id}`} className="link-arrow price-table__link">
+    <Link to={planPath(plan)} className="link-arrow price-table__link">
       課程介紹
       <Icon name="arrow" size={16} />
     </Link>
@@ -22,8 +23,8 @@ function PlanLink({ plan }) {
 export default function Classes() {
   return (
     <>
-      <PageHeader eyebrow="Programs" title="課程方案">
-        所有課程皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
+      <PageHeader eyebrow="Fitness" title="健身課程方案">
+        私人教練課皆為 60 分鐘，由同一位教練親自指導。線上預約只保留時段，套票方案於現場購買，堂數越多平均單堂越划算。
       </PageHeader>
 
       {/* id="pricing"：首頁方案卡片上的價格會連到這裡 */}

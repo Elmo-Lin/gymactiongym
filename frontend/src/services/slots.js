@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { config } from '../config'
+import { getPlan } from '../data/classes'
 import { request } from '../utils/api'
 import { localSlotIndex } from '../utils/booking'
 import { loadBookings } from '../utils/storage'
@@ -8,8 +9,8 @@ import { loadBookings } from '../utils/storage'
 export const BOOKING_RANGE_DAYS = 111
 
 // 把 API 回傳的時段清單整理成時段表 { 日期: 時段[] }
-async function fetchSlotIndex(from, to) {
-  const slots = await request(`/api/slots?from=${from}&to=${to}`)
+async function fetchSlotIndex(from, to, program) {
+  const slots = await request(`/api/slots?from=${from}&to=${to}&program=${program}`)
   const index = {}
   for (const slot of slots) {
     if (!index[slot.date]) index[slot.date] = []
@@ -18,27 +19,30 @@ async function fetchSlotIndex(from, to) {
   return index
 }
 
-// 取得 from～to 的時段表。
+// 這個瀏覽器送出的預約中，屬於這間教室的（舊的預約沒有類別，方案都是健身）
+const localBookings = (program) => loadBookings().filter((b) => (getPlan(b.planId)?.program ?? 'fitness') === program)
+
+// 取得 from～to 某間教室（program：fitness 健身、pilates 皮拉提斯）的時段表。
 // 靜態模式：用課表 + 這個瀏覽器送出的預約自己算。
 // 其他模式：呼叫 GET /api/slots；拿到資料前先顯示只依固定課表算出的狀態，失敗時 error 為 true。
 // reload() 會重新向後端查詢，例如送出預約時發現時段已被搶走
-export function useSlots(from, to) {
-  const local = useMemo(() => localSlotIndex(from, to, config.useApi ? [] : loadBookings()), [from, to])
+export function useSlots(from, to, program = 'fitness') {
+  const local = useMemo(() => localSlotIndex(from, to, config.useApi ? [] : localBookings(program)), [from, to, program])
   const [version, setVersion] = useState(0)
-  const key = `${from}~${to}#${version}`
+  const key = `${program}:${from}~${to}#${version}`
   const [remote, setRemote] = useState({ key: null, index: null, error: false })
   const reload = () => setVersion((v) => v + 1)
 
   useEffect(() => {
     if (!config.useApi) return
     let ignore = false
-    fetchSlotIndex(from, to)
+    fetchSlotIndex(from, to, program)
       .then((index) => !ignore && setRemote({ key, index, error: false }))
       .catch(() => !ignore && setRemote({ key, index: null, error: true }))
     return () => {
       ignore = true
     }
-  }, [from, to, key])
+  }, [from, to, program, key])
 
   if (!config.useApi) return { index: local, loading: false, error: false, reload }
   const loaded = remote.key === key

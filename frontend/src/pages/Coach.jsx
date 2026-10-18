@@ -8,8 +8,8 @@ import { coach } from '../data/coach'
 export default function Coach() {
   return (
     <>
-      <PageHeader eyebrow="Your Coach" title="教練介紹">
-        即動只有一位教練。從第一堂體驗課到之後的每一堂，都是同一個人在你身邊。
+      <PageHeader eyebrow="Fitness Coach" title="健身教練介紹">
+        健身課程只有一位教練。從第一堂體驗課到之後的每一堂，都是同一個人在你身邊。
       </PageHeader>
 
       <section className="section">

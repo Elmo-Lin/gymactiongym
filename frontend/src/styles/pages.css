@@ -2468,3 +2468,125 @@ a.price:hover {
     grid-column: 2;
   }
 }
+
+/* ---------- Pilates ---------- */
+.badge--pilates {
+  background: var(--charcoal-3);
+}
+
+/* 使用器械：照片 + 名稱 + 說明，三台器械並排 */
+.equipment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.equipment__photo {
+  aspect-ratio: 4 / 5;
+  margin-bottom: 14px;
+  border-radius: var(--radius);
+}
+
+.equipment__item h3 {
+  margin-bottom: 6px;
+  font-family: var(--font-body);
+  font-size: 17px;
+}
+
+.equipment__item p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+/* 教室環境：橫式照片兩張並排 */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.gallery__photo {
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-lg);
+}
+
+/* 課程方案頁連到皮拉提斯的卡片 */
+.pilates-teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: border-color 0.2s, box-shadow 0.25s;
+}
+
+.pilates-teaser:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow);
+}
+
+.pilates-teaser__photo {
+  min-height: 260px;
+}
+
+.pilates-teaser__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+
+.pilates-teaser__body h2 {
+  font-size: clamp(26px, 3.4vw, 36px);
+}
+
+.pilates-teaser__body p {
+  color: var(--ink-2);
+  line-height: 1.8;
+}
+
+@media (max-width: 960px) {
+  .equipment {
+    grid-template-columns: 1fr;
+  }
+
+  .equipment__photo {
+    aspect-ratio: 4 / 3;
+  }
+
+  .pilates-teaser {
+    grid-template-columns: 1fr;
+  }
+
+  .pilates-teaser__photo {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .pilates-teaser__body {
+    padding: 28px 24px;
+  }
+}
+
+/* 預約流程第一步：先選健身或皮拉提斯 */
+.program-switch {
+  margin-bottom: 20px;
+}
+
+.badge--group {
+  background: var(--charcoal-3);
+}
+
+.plan-visual--group {
+  background: var(--charcoal-2);
+}

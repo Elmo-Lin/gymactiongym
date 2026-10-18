@@ -1,11 +1,14 @@
-// 課程方案，需與後端 Plan.java 保持一致。一位教練，最多同時指導兩位學員。
-// 每個時段只服務一組學員：1對2 的同行者是會員自己帶的朋友，不會和不認識的人一起上課。
+// 課程方案，需與後端 Plan.java 保持一致。
+// 每個時段只服務一組學員：同行者是會員自己帶的朋友，不會和不認識的人一起上課。
 // 價格取自店內價目表（2026/10）。線上預約只保留時段，套票與續約價於現場購買。
+//   program：fitness 健身（石頭教練）、pilates 皮拉提斯（霏霏教練），兩間教室的時段分開，見 data/programs.js
+//   capacity：上課人數；minPeople：人數可以選的方案（皮拉提斯團課 2–4 人）才有，為最少人數
 //   packages：可購買的方案，perSession 為平均單堂價；renewal 為續約會員的平均單堂價
-//   unit：價格的單位，1對2 為每位學員的價格
+//   unit：價格的單位，1對2 與團課為每位學員的價格
 export const plans = [
   {
     id: 'trial',
+    program: 'fitness',
     name: '首次體驗課',
     en: 'First Session',
     format: 'trial',
@@ -27,6 +30,7 @@ export const plans = [
   },
   {
     id: 'one-on-one',
+    program: 'fitness',
     name: '1對1 私人教練課',
     en: 'Personal Training',
     format: 'solo',
@@ -53,6 +57,7 @@ export const plans = [
   },
   {
     id: 'one-on-two',
+    program: 'fitness',
     name: '1對2 雙人小班',
     en: 'Duo Training',
     format: 'duo',
@@ -74,6 +79,81 @@ export const plans = [
       '定期檢測，兩人各自追蹤進度',
     ],
     suitable: ['想和朋友、伴侶一起養成運動習慣', '兩人程度相近、目標類似', '希望兼顧個別指導與合理預算'],
+  },
+  // 皮拉提斯：價格取自皮拉提斯價目表（2026/10）。團課單堂價假設為每位學員的價格，請和教練確認
+  {
+    id: 'pilates-solo',
+    program: 'pilates',
+    name: '1對1 器械皮拉提斯',
+    en: 'Private Pilates',
+    format: 'solo',
+    formatLabel: '1對1',
+    capacity: 1,
+    duration: 60,
+    unit: '堂',
+    packages: [
+      { name: '單堂', sessions: 1, perSession: 2000 },
+      { name: '8 堂優惠', sessions: 8, perSession: 1700 },
+    ],
+    tagline: '社恐專屬，為你而練。',
+    description:
+      '整堂課只有你和教練，不用擔心跟不上別人。教練依你的身體狀況調整器械的彈簧阻力與動作，從呼吸與核心控制開始，一步步練出穩定的身體。',
+    expect: [
+      '上課前確認身體狀況與當天的痠痛部位',
+      '從呼吸與骨盆、肋骨的位置建立核心控制',
+      '依程度調整 Reformer、Cadillac、Chair 的阻力與動作',
+      '課後提供居家可以做的伸展與核心練習',
+    ],
+    suitable: ['第一次接觸皮拉提斯，想從頭學好', '有痠痛或體態問題，需要個別調整', '不習慣和別人一起上課'],
+  },
+  {
+    id: 'pilates-duo',
+    program: 'pilates',
+    name: '1對2 雙人皮拉提斯',
+    en: 'Duo Pilates',
+    format: 'duo',
+    formatLabel: '1對2',
+    capacity: 2,
+    duration: 60,
+    unit: '位・堂',
+    packages: [
+      { name: '單堂', sessions: 1, perSession: 1200 },
+      { name: '8 堂優惠', sessions: 8, perSession: 900 },
+    ],
+    tagline: '閨蜜塑型小隊，一起變輕盈。',
+    description: '和朋友、伴侶或家人一起上課，兩人各用一台器械，教練依兩人的程度安排同主題、不同強度的動作，有人陪伴更容易堅持。',
+    expect: [
+      '兩人同時練習，教練輪流修正動作細節',
+      '依各自程度調整彈簧阻力與動作變化',
+      '搭配雙人互動的核心與伸展練習',
+      '課後提供居家練習建議',
+    ],
+    suitable: ['想和朋友、伴侶一起運動', '兩人程度相近、目標類似', '希望兼顧個別指導與合理預算'],
+  },
+  {
+    id: 'pilates-group',
+    program: 'pilates',
+    name: '2–4 人精緻團課',
+    en: 'Group Pilates',
+    format: 'group',
+    formatLabel: '團課',
+    minPeople: 2,
+    capacity: 4,
+    duration: 60,
+    unit: '位・堂',
+    packages: [
+      { name: '單堂', sessions: 1, perSession: 890 },
+      { name: '8 堂優惠', sessions: 8, perSession: 690 },
+    ],
+    tagline: '全員動起來，揪朋友一起上。',
+    description: '自己揪 2–4 人包下一個時段，一起在器械上練核心、改善體態。人數少，教練仍然看得到每個人的動作，平均單堂也最划算。',
+    expect: [
+      '全組一起暖身與呼吸練習',
+      '輪流使用 Reformer、Cadillac、Chair 等器械',
+      '教練依每個人的程度調整阻力與動作',
+      '課後提供居家練習建議',
+    ],
+    suitable: ['想和同事、朋友一起固定運動', '想用更划算的價格上器械皮拉提斯', '已經上過幾堂，想和朋友一起持續練習'],
   },
 ]
 
@@ -103,3 +183,8 @@ export const trainingGoals = [
 ]
 
 export const getPlan = (id) => plans.find((p) => p.id === id)
+
+export const plansFor = (program) => plans.filter((p) => p.program === program)
+
+// 上課人數的文字，例如「1」「2–4」
+export const peopleLabel = (plan) => (plan.minPeople ? `${plan.minPeople}–${plan.capacity}` : `${plan.capacity}`)

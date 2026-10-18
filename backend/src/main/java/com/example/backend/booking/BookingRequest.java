@@ -19,8 +19,8 @@ public record BookingRequest(
 		// 只有每週固定需要：4、8 或 12 週
 		Integer weeks,
 		@NotNull @Valid Contact contact,
-		// 同行朋友的姓名，人數必須是方案人數 - 1（1對1 為空陣列）
-		@NotNull List<@NotBlank @Size(max = 50) String> partners,
+		// 同行朋友的姓名，會員 + 朋友的人數要在方案的人數範圍內（1對1 為空陣列，皮拉提斯團課 1–3 位）
+		@NotNull @Size(max = 3) List<@NotBlank @Size(max = 50) String> partners,
 		@NotNull @Pattern(regexp = "muscle|fatloss|posture|fitness|rehab|senior") String goal,
 		@NotNull @Pattern(regexp = "none|some|regular") String experience,
 		@Size(max = 500) String note) {

@@ -3,17 +3,33 @@ import Button from '../components/Button'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import ScheduleCard from '../components/ScheduleCard'
+import { getProgram } from '../data/programs'
 import { studioInfo } from '../data/schedule'
 import { useSlots } from '../services/slots'
 import { isClosedDay, slotsOn } from '../utils/booking'
 import { addDays, formatDateLong, formatMonthDay, isValidISODate, startOfWeek, todayISO, WEEKDAY_LABELS, weekdayOf } from '../utils/date'
 
-const legend = [
-  { status: 'open', label: '空堂：可預約 1對1 / 1對2' },
-  { status: 'taken', label: '已被預約' },
-]
+// 兩間教室各自的課表文字
+const TEXT = {
+  fitness: {
+    title: '健身課表',
+    lead: '每個時段只服務一組學員，大部分學員都在每週固定時段上課。看到空堂就可以直接預約，想和朋友一起上課就選 1對2。',
+    open: '空堂：可預約 1對1 / 1對2',
+  },
+  pilates: {
+    title: '皮拉提斯課表',
+    lead: '器械皮拉提斯在專屬教室上課，每個時段只服務一組學員。看到空堂就可以直接預約 1對1、1對2，或揪 2–4 人上團課。',
+    open: '空堂：可預約 1對1 / 1對2 / 團課',
+  },
+}
 
-export default function Schedule() {
+// program：fitness 健身（/schedule）、pilates 皮拉提斯（/pilates/schedule），兩間教室的時段分開
+export default function Schedule({ program = 'fitness' }) {
+  const text = TEXT[program]
+  const legend = [
+    { status: 'open', label: text.open },
+    { status: 'taken', label: '已被預約' },
+  ]
   const [params, setParams] = useSearchParams()
   const today = todayISO()
   const thisWeek = startOfWeek(today)
@@ -25,7 +41,7 @@ export default function Schedule() {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
   // 一次取得本週與下週的時段，切換週次時不用重新查詢
-  const { index, error } = useSlots(thisWeek, lastDay)
+  const { index, error } = useSlots(thisWeek, lastDay, program)
   const slotsByDay = Object.fromEntries(days.map((d) => [d, slotsOn(index, d)]))
   const slots = slotsByDay[selected] ?? []
   const available = slots.filter((s) => s.status === 'open').length
@@ -40,8 +56,8 @@ export default function Schedule() {
 
   return (
     <>
-      <PageHeader eyebrow="Schedule" title="每週課表">
-        每個時段只服務一組學員，大部分學員都在每週固定時段上課。看到空堂就可以直接預約，想和朋友一起上課就選 1對2。
+      <PageHeader eyebrow="Schedule" title={text.title}>
+        {text.lead}
       </PageHeader>
 
       <section className="section section--schedule">
@@ -120,7 +136,7 @@ export default function Schedule() {
             ) : (
               <div className="schedule-list">
                 {slots.map((slot) => (
-                  <ScheduleCard key={slot.time} slot={slot} />
+                  <ScheduleCard key={slot.time} slot={slot} program={getProgram(program)} />
                 ))}
               </div>
             )}

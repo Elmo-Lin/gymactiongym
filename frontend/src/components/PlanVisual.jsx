@@ -1,7 +1,7 @@
 import { Bolt } from './Logo'
 
 // 課程方案的視覺：不用照片，以上課人數的大字搭配品牌色與閃電，三個方案的風格才會一致
-const LABELS = { trial: '體驗', solo: '1:1', duo: '1:2' }
+const LABELS = { trial: '體驗', solo: '1:1', duo: '1:2', group: '2–4' }
 
 export default function PlanVisual({ plan, className = '' }) {
   return (

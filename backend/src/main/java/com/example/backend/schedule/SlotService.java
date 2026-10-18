@@ -20,16 +20,17 @@ public class SlotService {
 		this.slotRepository = slotRepository;
 	}
 
-	// 固定課表 + 網站上的預約 + 教練在後台排的課 = 每個時段目前的狀態
-	public List<Slot> getSlots(LocalDate from, LocalDate to) {
-		Map<String, SlotUsage> usages = slotRepository.findBetween(from, to);
-		List<CoachLessons.Busy> lessons = slotRepository.findCoachLessons(from, to);
+	// 固定課表 + 網站上的預約 + 教練在後台排的課 = 每個時段目前的狀態。
+	// 兩間教室各自計算；後台排課是石頭教練的課，只會佔用健身的時段
+	public List<Slot> getSlots(String program, LocalDate from, LocalDate to) {
+		Map<String, SlotUsage> usages = slotRepository.findBetween(program, from, to);
+		List<CoachLessons.Busy> lessons = Plan.FITNESS.equals(program) ? slotRepository.findCoachLessons(from, to) : List.of();
 		LocalDateTime now = LocalDateTime.now(TAIPEI);
 
 		List<Slot> slots = new ArrayList<>();
 		for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
 			for (WeeklySchedule.Entry entry : WeeklySchedule.entriesFor(date)) {
-				SlotUsage usage = usages.get(SlotUsage.docId(date.toString(), entry.time()));
+				SlotUsage usage = usages.get(SlotUsage.docId(program, date.toString(), entry.time()));
 				boolean coachLesson = CoachLessons.blocks(lessons, date.toString(), entry.time());
 				slots.add(toSlot(date, entry, usage, coachLesson, now));
 			}

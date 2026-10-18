@@ -13,6 +13,8 @@ import Coach from './pages/Coach'
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
 import OrderConfirmation from './pages/OrderConfirmation'
+import Pilates from './pages/Pilates'
+import PilatesCoach from './pages/PilatesCoach'
 import Schedule from './pages/Schedule'
 import Shop from './pages/Shop'
 
@@ -48,7 +50,12 @@ export function AppRoutes() {
         <Route path="/classes/:id" element={<ClassDetail />} />
         <Route path="/coach" element={<Coach />} />
         <Route path="/instructors" element={<Coach />} />
-        <Route path="/schedule" element={<Schedule />} />
+        {/* key：兩個課表用同一個元件，換頁時要重新建立，選到的日期才不會沿用 */}
+        <Route path="/schedule" element={<Schedule key="fitness" program="fitness" />} />
+        <Route path="/pilates" element={<Pilates />} />
+        <Route path="/pilates/classes/:id" element={<ClassDetail />} />
+        <Route path="/pilates/coach" element={<PilatesCoach />} />
+        <Route path="/pilates/schedule" element={<Schedule key="pilates" program="pilates" />} />
         <Route path="/booking" element={<BookingRoute />} />
         <Route path="/booking/confirmation" element={<BookingConfirmation />} />
         <Route path="/booking/:classId" element={<BookingRoute />} />

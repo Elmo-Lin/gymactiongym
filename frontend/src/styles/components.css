@@ -934,3 +934,106 @@
 .footer__rating:hover {
   color: var(--green-bright);
 }
+
+/* ---------- Navbar 下拉選單（健身／皮拉提斯） ---------- */
+.nav-group {
+  position: relative;
+}
+
+.nav-group__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nav-group__trigger .icon {
+  transition: transform 0.2s;
+}
+
+.nav-group:hover .nav-group__trigger,
+.nav-group:focus-within .nav-group__trigger {
+  color: #fff;
+}
+
+.nav-group:hover .nav-group__trigger .icon,
+.nav-group:focus-within .nav-group__trigger .icon {
+  transform: rotate(180deg);
+}
+
+/* 選單和標題之間留 padding 而不是 margin，滑鼠往下移時才不會經過空隙讓選單收起來 */
+.nav-group__menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  min-width: 168px;
+  padding: 8px;
+  border-radius: var(--radius);
+  background: var(--charcoal-2);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+}
+
+.nav-group__menu::before {
+  content: '';
+  position: absolute;
+  inset: -12px 0 auto;
+  height: 12px;
+}
+
+.nav-group:hover .nav-group__menu,
+.nav-group:focus-within .nav-group__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 8px);
+}
+
+.nav-group__link {
+  display: block;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-group__link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.nav-group__link.active {
+  color: var(--green-bright);
+}
+
+/* 手機選單：健身、皮拉提斯各一組 */
+.mobile-menu__group {
+  padding-top: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-menu__group-title {
+  padding-inline: 4px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.mobile-menu__link--sub {
+  padding-block: 14px;
+  font-size: 18px;
+}
+
+.mobile-menu__group .mobile-menu__link--sub:last-child {
+  border-bottom: 0;
+}

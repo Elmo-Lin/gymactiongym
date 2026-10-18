@@ -24,14 +24,18 @@ public class SlotController {
 		this.slotService = slotService;
 	}
 
-	// 例如 GET /api/slots?from=2026-10-12&to=2026-10-18
+	// 例如 GET /api/slots?from=2026-10-12&to=2026-10-18&program=pilates；沒有 program 時是健身的時段
 	@GetMapping
 	public List<Slot> list(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+			@RequestParam(defaultValue = Plan.FITNESS) String program) {
 		if (to.isBefore(from) || ChronoUnit.DAYS.between(from, to) >= MAX_DAYS) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "日期範圍不正確，一次最多查詢 " + MAX_DAYS + " 天");
 		}
-		return slotService.getSlots(from, to);
+		if (!Plan.PROGRAMS.contains(program)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "找不到這個課程類別");
+		}
+		return slotService.getSlots(program, from, to);
 	}
 
 }

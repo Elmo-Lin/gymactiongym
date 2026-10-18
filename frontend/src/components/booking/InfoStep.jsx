@@ -19,7 +19,8 @@ function Field({ id, label, error, required, children, hint }) {
   )
 }
 
-export default function InfoStep({ form, onChange, errors, touched, onBlur, partnerCount }) {
+// plan、people、onPeopleChange：人數可以選的方案（皮拉提斯團課 2–4 人）會多一個「上課人數」欄位
+export default function InfoStep({ form, onChange, errors, touched, onBlur, partnerCount, plan, people, onPeopleChange }) {
   const show = (key) => (touched[key] ? errors[key] : undefined)
   const set = (key) => (e) => onChange({ [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const setPartner = (i) => (e) => {
@@ -54,6 +55,18 @@ export default function InfoStep({ form, onChange, errors, touched, onBlur, part
         <Field id="email" label="Email" required error={show('email')} hint="預約確認信將寄到這個信箱">
           <input type="email" autoComplete="email" placeholder="name@example.com" value={form.email} onChange={set('email')} {...inputProps('email')} />
         </Field>
+        {plan.minPeople && (
+          <Field id="people" label="上課人數" required hint="包含你自己，下方填寫其他同行朋友的姓名">
+            <select id="people" value={people} onChange={(e) => onPeopleChange(Number(e.target.value))}>
+              {Array.from({ length: plan.capacity - plan.minPeople + 1 }, (_, i) => plan.minPeople + i).map((n) => (
+                <option key={n} value={n}>
+                  {n} 人
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+
         <Field id="goal" label="主要訓練目標" required error={show('goal')}>
           <select value={form.goal} onChange={set('goal')} {...inputProps('goal')}>
             <option value="">請選擇</option>
@@ -71,7 +84,7 @@ export default function InfoStep({ form, onChange, errors, touched, onBlur, part
           </Field>
         ))}
 
-        <Field id="experience" label="重量訓練經驗">
+        <Field id="experience" label={plan.program === 'pilates' ? '皮拉提斯經驗' : '重量訓練經驗'}>
           <select id="experience" value={form.experience} onChange={set('experience')}>
             <option value="none">沒有經驗</option>
             <option value="some">一年以內</option>

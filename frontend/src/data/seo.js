@@ -1,6 +1,8 @@
 import { coach } from './coach'
 import { getPlan, plans, startingPrice } from './classes'
 import { images } from './images'
+import { pilates, pilatesCoach } from './pilates'
+import { planPath } from './programs'
 import { studioInfo } from './schedule'
 
 // 正式網域。若之後綁定自有網域，只要改這裡並重新 build。
@@ -11,21 +13,36 @@ const suffix = `｜${SITE_NAME} 楊梅`
 
 const pages = {
   '/': {
-    title: `${SITE_NAME}｜楊梅健身房・小班制私人教練`,
+    title: `${SITE_NAME}｜楊梅健身房・小班制私人教練・器械皮拉提斯`,
     description:
-      '位於桃園楊梅的小班制肌力訓練工作室，一位教練最多兩位學員。提供 1對1、1對2 私人教練課與首次體驗課，增肌、減脂、體態改善，線上預約每週固定時段。',
+      '位於桃園楊梅的小班制工作室：肌力訓練提供 1對1、1對2 私人教練課與首次體驗課；器械皮拉提斯提供 1對1、1對2 與 2–4 人團課。線上預約每週固定時段。',
   },
   '/classes': {
-    title: `課程方案與價格・楊梅私人教練課${suffix}`,
+    title: `健身課程方案與價格・楊梅私人教練課${suffix}`,
     description:
       '楊梅私人教練課程方案：首次體驗課免費，1對1 私人教練單堂 NT$2,000、12／24／36 堂套票平均單堂最低 NT$1,470，1對2 雙人小班每位 NT$750 起，另有企業包班。',
+  },
+  '/pilates': {
+    title: `皮拉提斯課程方案與價格・楊梅器械皮拉提斯${suffix}`,
+    description: `楊梅器械皮拉提斯，由${pilatesCoach.name}授課。1對1 單堂 NT$2,000、1對2 每位 NT$1,200、2–4 人團課每位 NT$890，8 堂另有優惠價。${pilates.tagline}`,
+    image: `${SITE_URL}${pilates.gallery[0].src}`,
+  },
+  '/pilates/coach': {
+    title: `${pilatesCoach.name}・${pilatesCoach.title}${suffix}`,
+    description: `${pilatesCoach.name}：專長${pilatesCoach.specialties.join('、')}。${pilatesCoach.intro}`,
+    image: `${SITE_URL}${pilates.gallery[0].src}`,
+  },
+  '/pilates/schedule': {
+    title: `皮拉提斯課表與預約時段${suffix}`,
+    description: '查看即動 ACTION GYM 楊梅店皮拉提斯教室的每週課表與可預約時段，1對1、1對2、2–4 人團課都能線上預約。',
+    image: `${SITE_URL}${pilates.gallery[0].src}`,
   },
   '/coach': {
     title: `${coach.name}・${coach.title}${suffix}`,
     description: `${coach.name}：${coach.years} 年以上教學經驗，專長${coach.specialties.join('、')}。${coach.intro}`,
   },
   '/schedule': {
-    title: `課表與預約時段${suffix}`,
+    title: `健身課表與預約時段${suffix}`,
     description: '查看即動 ACTION GYM 楊梅店每週課表與可預約時段，空堂可直接線上預約私人教練課，或加入現有的固定班。',
   },
   '/shop': {
@@ -49,10 +66,10 @@ export function getSeo(pathname) {
   const noindex = NOINDEX_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
 
   let meta = pages[canonicalPath]
-  const classMatch = canonicalPath.match(/^\/classes\/([^/]+)$/)
+  const classMatch = canonicalPath.match(/^(?:\/pilates)?\/classes\/([^/]+)$/)
   if (classMatch) {
     const plan = getPlan(classMatch[1])
-    if (plan) {
+    if (plan && planPath(plan) === canonicalPath) {
       meta = {
         title: `${plan.name}・${plan.free ? '免費' : `NT$${startingPrice(plan).toLocaleString('en-US')} 起`}${suffix}`,
         description: `${plan.tagline}${plan.description}`.slice(0, 150),
@@ -70,7 +87,17 @@ export function getSeo(pathname) {
 }
 
 // 要預先產生 HTML、並列入 sitemap 的網址
-export const indexablePaths = ['/', '/classes', ...plans.map((p) => `/classes/${p.id}`), '/coach', '/schedule', '/shop']
+export const indexablePaths = [
+  '/',
+  '/classes',
+  '/coach',
+  '/schedule',
+  '/pilates',
+  '/pilates/coach',
+  '/pilates/schedule',
+  ...plans.map(planPath),
+  '/shop',
+]
 
 const DAY_CODES = { 週一至週五: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 週六: ['Saturday'], 週日: ['Sunday'], '週六、週日': ['Saturday', 'Sunday'] }
 

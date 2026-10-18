@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { peopleLabel } from '../data/classes'
+import { getProgram, planPath } from '../data/programs'
 import { priceSummary } from '../utils/booking'
 import Icon from './Icon'
 
@@ -11,7 +13,7 @@ export default function ClassCard({ plan, showPrice = true }) {
           <p className="class-card__en">{plan.en}</p>
         </div>
         <h3 className="class-card__title">
-          <Link to={`/classes/${plan.id}`}>{plan.name}</Link>
+          <Link to={planPath(plan)}>{plan.name}</Link>
         </h3>
         <ul className="meta">
           <li>
@@ -20,18 +22,18 @@ export default function ClassCard({ plan, showPrice = true }) {
           </li>
           <li>
             <Icon name="users" size={16} />
-            {plan.capacity} 位學員
+            {peopleLabel(plan)} 位學員
           </li>
         </ul>
         <p className="class-card__desc">{plan.tagline}</p>
         <div className="class-card__footer">
           {showPrice && (
-            <Link to="/classes#pricing" className="price" title="查看價目表">
+            <Link to={`${getProgram(plan.program).classesPath}#pricing`} className="price" title="查看價目表">
               {priceSummary(plan).amount}
               <span>{priceSummary(plan).unit}</span>
             </Link>
           )}
-          <Link to={`/classes/${plan.id}`} className="link-arrow">
+          <Link to={planPath(plan)} className="link-arrow">
             查看方案
             <Icon name="arrow" size={16} />
           </Link>

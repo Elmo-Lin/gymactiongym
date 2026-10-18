@@ -35,6 +35,7 @@ const paths = {
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
+  chevronDown: <path d="m6 9 6 6 6-6" />,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   pin: (

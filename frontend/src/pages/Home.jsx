@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Button from '../components/Button'
 import ClassCard from '../components/ClassCard'
 import CoachCard from '../components/CoachCard'
@@ -5,8 +6,9 @@ import Icon from '../components/Icon'
 import { Bolt } from '../components/Logo'
 import Photo from '../components/Photo'
 import SectionHeading from '../components/SectionHeading'
-import { plans } from '../data/classes'
+import { plansFor } from '../data/classes'
 import { images } from '../data/images'
+import { pilates, pilatesCoach } from '../data/pilates'
 import { studioInfo } from '../data/schedule'
 
 const benefits = [
@@ -48,7 +50,7 @@ export default function Home() {
         <div className="container hero__content">
           <p className="eyebrow eyebrow--light">
             <Bolt className="eyebrow__bolt" />
-            楊梅・小班制肌力訓練工作室
+            楊梅・小班制肌力訓練 × 器械皮拉提斯
           </p>
           <h1 className="hero__title">
             即刻行動，
@@ -123,18 +125,37 @@ export default function Home() {
       <section className="section section--tint">
         <div className="container">
           <div className="section-top">
-            <SectionHeading eyebrow="課程方案" title="一個人練，或找夥伴一起。">
-              所有課程皆由同一位教練親自指導，依人數選擇最適合你的方式。
+            <SectionHeading eyebrow="健身課程" title="一個人練，或找夥伴一起。">
+              肌力訓練由石頭教練親自指導，依人數選擇最適合你的方式。
             </SectionHeading>
             <Button to="/classes" variant="ghost" arrow>
-              查看全部方案
+              查看健身方案
             </Button>
           </div>
           <div className="card-grid card-grid--3">
-            {plans.map((plan) => (
+            {plansFor('fitness').map((plan) => (
               <ClassCard key={plan.id} plan={plan} />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <Link to="/pilates" className="pilates-teaser">
+            <Photo src={pilates.gallery[0].src} alt={pilates.gallery[0].alt} className="pilates-teaser__photo" />
+            <div className="pilates-teaser__body">
+              <span className="badge badge--pilates">皮拉提斯</span>
+              <h2>{pilates.name}</h2>
+              <p>
+                {pilates.tagline}在專屬的皮拉提斯教室由{pilatesCoach.name}授課，1對1、1對2，或揪 2–4 人上團課，都能線上預約。
+              </p>
+              <span className="link-arrow">
+                皮拉提斯課程方案
+                <Icon name="arrow" size={16} />
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 

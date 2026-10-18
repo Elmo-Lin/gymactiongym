@@ -42,7 +42,8 @@ public class BookingService {
 		if (weekly && !WEEKLY_OPTIONS.contains(weeks)) {
 			throw badRequest("每週固定只能選 4、8 或 12 週");
 		}
-		if (request.partners().size() != plan.capacity() - 1) {
+		int people = 1 + request.partners().size();
+		if (people < plan.minPeople() || people > plan.capacity()) {
 			throw badRequest("同行人數與方案不符");
 		}
 
@@ -69,7 +70,7 @@ public class BookingService {
 			}
 		}
 
-		// 4. 時段由會員包下，上課人數就是方案人數（會員 + 自己帶的朋友）
+		// 4. 時段由會員包下，上課人數是會員 + 自己帶的朋友
 		Booking booking = new Booking(
 				ReferenceGenerator.generate("AG"),
 				plan.id(),
@@ -81,7 +82,7 @@ public class BookingService {
 				request.time(),
 				start.plusMinutes(WeeklySchedule.SESSION_MINUTES).toString(),
 				weeks,
-				plan.capacity(),
+				people,
 				request.contact(),
 				request.partners(),
 				request.goal(),
@@ -89,8 +90,8 @@ public class BookingService {
 				request.note(),
 				Instant.now());
 
-		// 5. 在 transaction 裡確認時段都還空著，再一起寫入
-		bookingRepository.create(booking, dates);
+		// 5. 在 transaction 裡確認這間教室的時段都還空著，再一起寫入
+		bookingRepository.create(booking, plan.program(), dates);
 		return booking;
 	}
 

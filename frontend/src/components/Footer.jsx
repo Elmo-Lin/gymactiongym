@@ -31,11 +31,21 @@ export default function Footer() {
         <div>
           <h3 className="footer__title">網站導覽</h3>
           <ul className="footer__list">
-            {navLinks.map((link) => (
-              <li key={link.to}>
-                <Link to={link.to}>{link.label}</Link>
-              </li>
-            ))}
+            {navLinks.flatMap((link) =>
+              link.children
+                ? link.children.map((child) => (
+                    <li key={child.to}>
+                      <Link to={child.to}>
+                        {link.label}・{child.label}
+                      </Link>
+                    </li>
+                  ))
+                : [
+                    <li key={link.to}>
+                      <Link to={link.to}>{link.label}</Link>
+                    </li>,
+                  ],
+            )}
             <li>
               <Link to="/booking">立即預約</Link>
             </li>
