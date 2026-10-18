@@ -72,7 +72,7 @@ export function getSeo(pathname) {
 // 要預先產生 HTML、並列入 sitemap 的網址
 export const indexablePaths = ['/', '/classes', ...plans.map((p) => `/classes/${p.id}`), '/coach', '/schedule', '/shop']
 
-const DAY_CODES = { 週一至週五: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 週六: ['Saturday'], 週日: ['Sunday'] }
+const DAY_CODES = { 週一至週五: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 週六: ['Saturday'], 週日: ['Sunday'], '週六、週日': ['Saturday', 'Sunday'] }
 
 // Google 在地商家結構化資料（ExerciseGym）
 export function getBusinessJsonLd() {

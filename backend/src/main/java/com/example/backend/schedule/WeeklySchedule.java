@@ -23,14 +23,15 @@ public final class WeeklySchedule {
 		return Arrays.stream(times).map((time) -> new Entry(time, false)).toList();
 	}
 
-	// 週日公休，沒有時段
+	// 週日的時段和週六相同
 	private static final Map<DayOfWeek, List<Entry>> WEEK = Map.of(
 			DayOfWeek.MONDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "16:00", "18:00", "19:00", "20:00"),
 			DayOfWeek.TUESDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
 			DayOfWeek.WEDNESDAY, open("07:00", "08:00", "10:00", "11:00", "15:00", "16:00", "18:00", "19:00", "20:00"),
 			DayOfWeek.THURSDAY, open("07:00", "09:00", "10:00", "14:00", "15:00", "18:00", "19:00", "20:00"),
 			DayOfWeek.FRIDAY, open("07:00", "08:00", "10:00", "11:00", "14:00", "18:00", "19:00", "20:00"),
-			DayOfWeek.SATURDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"));
+			DayOfWeek.SATURDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"),
+			DayOfWeek.SUNDAY, open("09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"));
 
 	private WeeklySchedule() {
 	}

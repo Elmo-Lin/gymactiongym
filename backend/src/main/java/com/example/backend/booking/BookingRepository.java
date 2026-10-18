@@ -3,6 +3,7 @@ package com.example.backend.booking;
 import static com.example.backend.support.FirestoreSupport.await;
 import static com.example.backend.support.FirestoreSupport.toInstant;
 
+import com.example.backend.schedule.CoachLessons;
 import com.example.backend.schedule.SlotUsage;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
@@ -10,6 +11,8 @@ import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.Transaction;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +36,7 @@ public class BookingRepository {
 		this.slots = firestore.collection("slots");
 	}
 
-	// 在同一個 transaction 裡：讀取每個時段 → 確認都還沒被預約 → 寫入預約並佔用所有時段。
+	// 在同一個 transaction 裡：讀取每個時段和教練排的課 → 確認都還沒被預約、也沒和教練排的課重疊 → 寫入預約並佔用所有時段。
 	// 任何一個時段已被預約，整筆預約都不會寫入。
 	// 兩個人同時搶同一個時段時，Firestore 會讓其中一個等另一個完成後再讀，所以第二個人一定會看到已被預約
 	public void create(Booking booking, List<LocalDate> dates) {
@@ -48,6 +51,13 @@ public class BookingRepository {
 			for (DocumentSnapshot snapshot : snapshots) {
 				if (snapshot.exists()) {
 					throw new SlotTakenException(snapshot.getString("date"), snapshot.getString("time"));
+				}
+			}
+			List<CoachLessons.Busy> lessons = CoachLessons.between(firestore, reader(transaction), dates.get(0),
+					dates.get(dates.size() - 1));
+			for (LocalDate date : dates) {
+				if (CoachLessons.blocks(lessons, date.toString(), booking.time())) {
+					throw new SlotTakenException(date.toString(), booking.time());
 				}
 			}
 
@@ -78,6 +88,21 @@ public class BookingRepository {
 			}
 			throw new IllegalStateException("Firestore 操作失敗", ex.getCause());
 		}
+	}
+
+	// 在 transaction 裡讀取教練排的課，和時段一起被鎖定
+	private static CoachLessons.Reader reader(Transaction transaction) {
+		return new CoachLessons.Reader() {
+			@Override
+			public List<? extends DocumentSnapshot> query(Query query) {
+				return await(transaction.get(query)).getDocuments();
+			}
+
+			@Override
+			public List<DocumentSnapshot> getAll(List<DocumentReference> refs) {
+				return await(transaction.getAll(refs.toArray(new DocumentReference[0])));
+			}
+		};
 	}
 
 	public Optional<Booking> findByReference(String reference) {
