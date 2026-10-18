@@ -118,4 +118,9 @@ public class CoachController {
 		return coachRepository.moveLesson(id, request.date());
 	}
 
+	@DeleteMapping("/lessons/{id}")
+	public Map<String, Integer> deleteLesson(@PathVariable String id) {
+		return Map.of("remaining", coachRepository.deleteLesson(id));
+	}
+
 }

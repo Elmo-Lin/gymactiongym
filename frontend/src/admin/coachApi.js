@@ -34,6 +34,7 @@ export function createDemoApi() {
     logSession: async (studentId, session) => ({ session: { ...session, id: newId(`${studentId}-`) } }),
     addBooking: async (booking) => ({ ...booking, id: newId('b'), done: false }),
     moveBooking: async () => null,
+    deleteBooking: async () => ({}),
     saveExercises: async () => null,
   }
 }
@@ -67,6 +68,7 @@ export function createRemoteApi(getToken) {
       }),
     addBooking: (booking) => call('/api/admin/lessons', { method: 'POST', body: booking }),
     moveBooking: (id, date) => call(`/api/admin/lessons/${id}`, { method: 'PATCH', body: { date } }),
+    deleteBooking: (id) => call(`/api/admin/lessons/${id}`, { method: 'DELETE' }),
     saveExercises: (exercises) => call('/api/admin/exercises', { method: 'PUT', body: { exercises } }),
   }
 }

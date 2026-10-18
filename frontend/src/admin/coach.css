@@ -1053,6 +1053,10 @@
   gap: 14px;
 }
 
+.log-head .cancel-booking {
+  margin-left: auto;
+}
+
 .log-title h1 {
   font-family: var(--serif);
   font-size: 26px;

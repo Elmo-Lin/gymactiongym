@@ -179,7 +179,8 @@ function ExercisePicker({ library, available, adding, onPick, onCreate, onRemove
   )
 }
 
-export default function LogSession({ student, booking, library, onLibraryChange, onCancel, onSave }) {
+// onCancelBooking：從排的課點進來時才有，用來取消這堂課（退回 1 堂）
+export default function LogSession({ student, booking, library, onLibraryChange, onCancel, onSave, onCancelBooking }) {
   const [plan, setPlan] = useState(() => defaultPlan(student, booking))
   // 從排的課點進來就記在那堂課的日期，否則記在今天
   const date = booking?.date ?? TODAY
@@ -187,6 +188,8 @@ export default function LogSession({ student, booking, library, onLibraryChange,
   const [note, setNote] = useState('')
   const [adding, setAdding] = useState('')
   const [saving, setSaving] = useState(false)
+  // 取消課程要按兩次：第一次按下變成「確定取消？」，避免誤觸
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   const changePlan = (p) => {
     setPlan(p)
@@ -282,6 +285,15 @@ export default function LogSession({ student, booking, library, onLibraryChange,
             · <Remaining remaining={student.remaining} />
           </p>
         </div>
+        {onCancelBooking && (
+          <button
+            className="text-btn danger cancel-booking"
+            onClick={() => (confirmCancel ? onCancelBooking() : setConfirmCancel(true))}
+            onBlur={() => setConfirmCancel(false)}
+          >
+            {confirmCancel ? '確定取消？退回 1 堂' : '取消這堂課'}
+          </button>
+        )}
       </header>
 
       <div className="tabs">

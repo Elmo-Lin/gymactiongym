@@ -294,6 +294,31 @@ public class CoachRepository {
 		}));
 	}
 
+	// 取消排課：排課時扣的 1 堂退回去，回傳退回後的剩餘堂數。
+	// 已記錄的課不能取消；改成排課扣堂之前排的課（沒有 charged）當初沒扣，所以也不退
+	public int deleteLesson(String id) {
+		DocumentReference ref = lessons.document(id);
+		return await(firestore.runTransaction((tx) -> {
+			DocumentSnapshot lesson = tx.get(ref).get();
+			if (!lesson.exists()) {
+				throw notFound("找不到這堂課");
+			}
+			if (Boolean.TRUE.equals(lesson.getBoolean("done"))) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT, "已記錄的課不能取消");
+			}
+			DocumentReference studentRef = students.document(lesson.getString("studentId"));
+			DocumentSnapshot student = tx.get(studentRef).get();
+			int remaining = student.exists() ? intValue(student.get("remaining")) : 0;
+
+			tx.delete(ref);
+			if (student.exists() && Boolean.TRUE.equals(lesson.getBoolean("charged"))) {
+				remaining++;
+				tx.update(studentRef, "remaining", remaining);
+			}
+			return remaining;
+		}));
+	}
+
 	// 匯入示範資料：資料庫裡已經有學生就拒絕，避免和真實資料混在一起
 	public AdminData importDemo(ImportRequest request) {
 		if (!await(students.limit(1).get()).isEmpty()) {

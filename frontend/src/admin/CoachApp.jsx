@@ -230,6 +230,23 @@ export default function CoachApp({ api, user, onLogout }) {
     }
   }
 
+  // 取消排課：退回排課時扣的 1 堂。後端回傳退回後的堂數（舊規則排的課不退）；示範模式沒有後端，直接加 1
+  const cancelBooking = async (bookingId) => {
+    const booking = bookings.find((b) => b.id === bookingId)
+    const student = students.find((s) => s.id === booking.studentId)
+    try {
+      const result = await api.deleteBooking(bookingId)
+      const remaining = result?.remaining ?? student.remaining + 1
+      setBookings((list) => list.filter((b) => b.id !== bookingId))
+      setStudents((list) => list.map((s) => (s.id === student.id ? { ...s, remaining } : s)))
+      go({ tab: route.tab })
+      const refunded = remaining > student.remaining ? `，退回 1 堂（剩 ${remaining} 堂）` : ''
+      showToast(`已取消 ${student.name} ${booking.date.slice(5).replace('-', '/')} ${booking.time} 的課${refunded}`)
+    } catch {
+      showToast('取消失敗，請再試一次')
+    }
+  }
+
   const moveBooking = (bookingId, date) => {
     const booking = bookings.find((b) => b.id === bookingId)
     const student = students.find((s) => s.id === booking.studentId)
@@ -281,6 +298,7 @@ export default function CoachApp({ api, user, onLogout }) {
         onLibraryChange={saveExercises}
         onCancel={() => go({ tab: route.tab, studentId: current.id })}
         onSave={(session) => saveSession(current.id, session, route.bookingId)}
+        onCancelBooking={route.bookingId ? () => cancelBooking(route.bookingId) : null}
       />
     )
   } else if (current) {
