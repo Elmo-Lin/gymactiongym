@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { useEffect, useMemo, useState } from 'react'
 import { firebaseConfig } from '../config'
-import CoachApp, { Splash } from './CoachApp.jsx'
+import CoachApp, { Loading, Splash } from './CoachApp.jsx'
 import { createRemoteApi } from './coachApi.js'
 
 const auth = firebaseConfig ? getAuth(initializeApp(firebaseConfig)) : null
@@ -35,7 +35,7 @@ export default function AuthGate() {
     )
   }
 
-  if (user === undefined) return <Splash title="載入中…" />
+  if (user === undefined) return <Loading />
 
   if (!user) {
     const login = async () => {

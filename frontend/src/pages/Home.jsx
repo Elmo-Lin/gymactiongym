@@ -138,7 +138,7 @@ export default function Home() {
                   <Photo src={photo} alt={alt} className={`program-card__photo ${program.id === 'pilates' ? 'pilates-hero__photo' : ''}`} />
                 </Link>
                 <div className="program-card__body">
-                  <span className={`badge badge--${program.id === 'pilates' ? 'pilates' : 'trial'}`}>{program.name}</span>
+                  <span className="badge badge--program">{program.name}</span>
                   <h3>
                     <Link to={program.classesPath}>{title}</Link>
                   </h3>

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { adminLogin, config } from '../config'
-import CoachApp, { Splash } from './CoachApp.jsx'
+import CoachApp, { Loading } from './CoachApp.jsx'
 import { createDemoApi, createRemoteApi } from './coachApi.js'
 
 // 登入相關的程式（含 Firebase SDK）只有 Google 登入時才載入
@@ -17,7 +17,7 @@ export default function AdminRoot() {
   if (adminLogin === 'none') return <CoachApp api={openApi} user={null} onLogout={null} />
 
   return (
-    <Suspense fallback={<Splash title="載入中…" />}>
+    <Suspense fallback={<Loading />}>
       <AuthGate />
     </Suspense>
   )

@@ -1621,6 +1621,29 @@
   font-size: 26px;
 }
 
+/* 載入中的轉圈圈 */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--paper-2);
+  border-top-color: var(--walnut);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 系統設定減少動態效果時，轉慢一點 */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
 .splash-error {
   color: var(--clay);
 }

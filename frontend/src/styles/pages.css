@@ -2546,6 +2546,10 @@ a.price:hover {
   padding: 32px;
 }
 
+.program-card .badge--program {
+  background: var(--charcoal-3);
+}
+
 .program-card__body h3 {
   font-size: clamp(24px, 3vw, 30px);
 }

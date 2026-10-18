@@ -92,7 +92,7 @@ export default function CoachApp({ api, user, onLogout }) {
     )
   }
 
-  if (!students) return <Splash title="載入中…" />
+  if (!students) return <Loading />
 
   const switchProgram = (id) => {
     setProgram(id)
@@ -519,7 +519,19 @@ function Welcome({ label, canImport, importing, onCreate, onImport }) {
   )
 }
 
-// 載入中、錯誤等全頁狀態
+// 載入中：品牌名稱下方轉圈圈（給螢幕閱讀器的文字是「載入中」）
+export function Loading() {
+  return (
+    <div className="splash" role="status" aria-label="載入中">
+      <div className="brand">
+        即動<span>教練後台</span>
+      </div>
+      <span className="spinner" aria-hidden="true" />
+    </div>
+  )
+}
+
+// 登入、錯誤等全頁狀態
 export function Splash({ title, children, user, onLogout }) {
   return (
     <div className="splash">
