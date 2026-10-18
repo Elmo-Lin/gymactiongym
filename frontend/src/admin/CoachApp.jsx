@@ -144,6 +144,40 @@ export default function CoachApp({ api, user, onLogout }) {
     }
   }
 
+  // 刪除學生：移到學生名單最下面的「已刪除」，資料都保留，提示訊息上可以直接復原
+  const deleteStudent = async (studentId) => {
+    const student = students.find((s) => s.id === studentId)
+    try {
+      const { deletedAt } = await api.deleteStudent(studentId)
+      setStudents((list) => list.map((s) => (s.id === studentId ? { ...s, deletedAt } : s)))
+      go({ tab: 'students' })
+      showToast(`已刪除學生 ${student.name}`, { label: '復原', run: () => restoreStudent(studentId) })
+    } catch {
+      showToast('刪除失敗，請再試一次')
+    }
+  }
+
+  const restoreStudent = (studentId) => {
+    const student = students.find((s) => s.id === studentId)
+    if (!student) return // 已經永久刪除了
+    setStudents((list) => list.map((s) => (s.id === studentId ? { ...s, deletedAt: null } : s)))
+    showToast(`已復原學生 ${student.name}`)
+    persist(api.restoreStudent(studentId))
+  }
+
+  // 永久刪除：連同訓練紀錄與排課一起刪掉，無法復原，等後端刪完才更新畫面
+  const purgeStudent = async (studentId) => {
+    const student = students.find((s) => s.id === studentId)
+    try {
+      await api.purgeStudent(studentId)
+      setStudents((list) => list.filter((s) => s.id !== studentId))
+      setBookings((list) => list.filter((b) => b.studentId !== studentId))
+      showToast(`已永久刪除 ${student.name} 的所有資料`)
+    } catch {
+      showToast('永久刪除失敗，請再試一次')
+    }
+  }
+
   const importDemo = async () => {
     setImporting(true)
     try {
@@ -194,7 +228,11 @@ export default function CoachApp({ api, user, onLogout }) {
     persist(api.saveExercises(list))
   }
 
-  const current = route.studentId && students.find((s) => s.id === route.studentId)
+  // 刪除的學生和他的課都不出現在各個畫面，只在學生名單最下面的「已刪除」
+  const activeStudents = students.filter((s) => !s.deletedAt)
+  const deletedStudents = students.filter((s) => s.deletedAt)
+  const activeBookings = bookings.filter((b) => activeStudents.some((s) => s.id === b.studentId))
+  const current = route.studentId && activeStudents.find((s) => s.id === route.studentId)
 
   let page
   if (route.form) {
@@ -204,6 +242,7 @@ export default function CoachApp({ api, user, onLogout }) {
         student={route.form === 'edit' ? current : null}
         onCancel={() => go(route.form === 'edit' ? { tab: route.tab, studentId: route.studentId } : { tab: route.tab })}
         onSave={saveStudent}
+        onDelete={route.form === 'edit' ? () => deleteStudent(route.studentId) : null}
       />
     )
   } else if (current && route.log) {
@@ -223,7 +262,7 @@ export default function CoachApp({ api, user, onLogout }) {
       <StudentDetail
         key={current.id}
         student={current}
-        bookings={bookings}
+        bookings={activeBookings}
         onBack={() => go({ tab: route.tab })}
         onLog={() => startLog(current.id)}
         onEdit={() => go({ tab: route.tab, studentId: current.id, form: 'edit' })}
@@ -242,12 +281,21 @@ export default function CoachApp({ api, user, onLogout }) {
       />
     )
   } else if (route.tab === 'students') {
-    page = <Students students={students} onOpen={openStudent} onCreate={() => go({ tab: 'students', form: 'new' })} />
+    page = (
+      <Students
+        students={activeStudents}
+        deleted={deletedStudents}
+        onOpen={openStudent}
+        onCreate={() => go({ tab: 'students', form: 'new' })}
+        onRestore={restoreStudent}
+        onPurge={purgeStudent}
+      />
+    )
   } else if (route.tab === 'schedule') {
     page = (
       <Schedule
-        students={students}
-        bookings={bookings}
+        students={activeStudents}
+        bookings={activeBookings}
         onOpen={openStudent}
         onLog={startLog}
         onAddBooking={addBooking}
@@ -257,8 +305,8 @@ export default function CoachApp({ api, user, onLogout }) {
   } else {
     page = (
       <Dashboard
-        students={students}
-        bookings={bookings}
+        students={activeStudents}
+        bookings={activeBookings}
         onOpen={openStudent}
         onLog={startLog}
         onAddPackage={addPackage}

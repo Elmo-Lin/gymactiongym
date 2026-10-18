@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { relativeDate } from '../utils.js'
+import { relativeDate, shortDate } from '../utils.js'
 import { Icon, Remaining } from './ui.jsx'
 
 const FILTERS = [
@@ -8,7 +8,7 @@ const FILTERS = [
   { id: 'empty', label: '已用完', test: (s) => s.remaining === 0 },
 ]
 
-export default function Students({ students, onOpen, onCreate }) {
+export default function Students({ students, deleted, onOpen, onCreate, onRestore, onPurge }) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
 
@@ -103,6 +103,61 @@ export default function Students({ students, onOpen, onCreate }) {
           </table>
         </div>
       )}
+
+      {deleted.length > 0 && <DeletedStudents students={deleted} onRestore={onRestore} onPurge={onPurge} />}
     </div>
+  )
+}
+
+// 已刪除的學生：可以復原，或永久刪除（要再按一次確認）
+function DeletedStudents({ students, onRestore, onPurge }) {
+  const [open, setOpen] = useState(false)
+  const [confirming, setConfirming] = useState(null) // 正在確認永久刪除的學生 id
+
+  return (
+    <section className="block deleted">
+      <div className="block-head">
+        <h2>
+          已刪除 <span className="num">{students.length}</span> 位
+        </h2>
+        <button className="text-btn" onClick={() => setOpen((v) => !v)}>
+          {open ? '收合' : '查看'}
+        </button>
+      </div>
+      {open && (
+        <ul className="rows">
+          {students.map((s) =>
+            confirming === s.id ? (
+              <li key={s.id} className="deleted-confirm">
+                <p>
+                  永久刪除 <b>{s.name}</b> 和 {s.history.length} 筆訓練紀錄、所有排課？刪除後無法復原。
+                </p>
+                <div className="btn-row">
+                  <button className="btn btn-danger" onClick={() => onPurge(s.id)}>
+                    永久刪除
+                  </button>
+                  <button className="btn btn-line" onClick={() => setConfirming(null)}>
+                    取消
+                  </button>
+                </div>
+              </li>
+            ) : (
+              <li key={s.id}>
+                <span className="rows-main">
+                  <strong>{s.name}</strong>
+                  <span className="muted num">{shortDate(s.deletedAt.slice(0, 10))} 刪除</span>
+                </span>
+                <button className="text-btn danger" onClick={() => setConfirming(s.id)}>
+                  永久刪除
+                </button>
+                <button className="btn btn-line" onClick={() => onRestore(s.id)}>
+                  復原
+                </button>
+              </li>
+            ),
+          )}
+        </ul>
+      )}
+    </section>
   )
 }

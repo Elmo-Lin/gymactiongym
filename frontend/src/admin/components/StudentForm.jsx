@@ -5,8 +5,9 @@ import { Icon } from './ui.jsx'
 const GOALS = ['增肌', '減脂', '力量', '提升體能', '臀腿線條', '姿勢矯正', '產後恢復', '傷後回歸']
 const EMPTY = { name: '', gender: '女', age: '', goal: '', plans: ['全身訓練'], phone: '', note: '' }
 
-// 新增或編輯學生（coachlog 原本只有示範資料，沒有這個畫面）。堂數不在這裡改，由「購買堂數」與「記錄訓練」增減
-export default function StudentForm({ student, onCancel, onSave }) {
+// 新增或編輯學生（coachlog 原本只有示範資料，沒有這個畫面）。堂數不在這裡改，由「購買堂數」與「記錄訓練」增減。
+// 編輯時最下面可以刪除學生（onDelete），刪除的學生可以在學生名單最下面復原
+export default function StudentForm({ student, onCancel, onSave, onDelete }) {
   const [form, setForm] = useState(() =>
     student
       ? {
@@ -21,6 +22,13 @@ export default function StudentForm({ student, onCancel, onSave }) {
       : EMPTY,
   )
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const remove = async () => {
+    setDeleting(true)
+    await onDelete()
+    setDeleting(false)
+  }
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const togglePlan = (plan) =>
@@ -121,6 +129,15 @@ export default function StudentForm({ student, onCancel, onSave }) {
           取消
         </button>
       </div>
+
+      {onDelete && (
+        <section className="danger-zone">
+          <button type="button" className="text-btn danger" onClick={remove} disabled={deleting}>
+            {deleting ? '刪除中…' : '刪除這位學生'}
+          </button>
+          <p className="muted">刪除後會移到學生名單最下面的「已刪除」，訓練紀錄都會保留，隨時可以復原。</p>
+        </section>
+      )}
     </form>
   )
 }

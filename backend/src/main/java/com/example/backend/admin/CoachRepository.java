@@ -20,10 +20,13 @@ import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.WriteBatch;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -123,6 +126,50 @@ public class CoachRepository {
 			tx.update(ref, profileMap(request));
 			return toStudent(id, request, intValue(snapshot.get("total")), intValue(snapshot.get("remaining")));
 		}));
+	}
+
+	// 刪除學生：只標記刪除時間，訓練紀錄與排課都保留，之後可以復原
+	public String deleteStudent(String id) {
+		String deletedAt = LocalDateTime.now(SlotService.TAIPEI).truncatedTo(ChronoUnit.MINUTES).toString();
+		updateExisting(id, "deletedAt", deletedAt);
+		return deletedAt;
+	}
+
+	public void restoreStudent(String id) {
+		updateExisting(id, "deletedAt", FieldValue.delete());
+	}
+
+	private void updateExisting(String id, String field, Object value) {
+		DocumentReference ref = students.document(id);
+		await(firestore.runTransaction((tx) -> {
+			if (!tx.get(ref).get().exists()) {
+				throw notFound("找不到這位學生");
+			}
+			tx.update(ref, field, value);
+			return null;
+		}));
+	}
+
+	// 永久刪除：只能刪已經刪除（在「已刪除」裡）的學生，連同訓練紀錄與排課一起刪除，無法復原
+	public void purgeStudent(String id) {
+		DocumentReference ref = students.document(id);
+		DocumentSnapshot snapshot = await(ref.get());
+		if (!snapshot.exists()) {
+			throw notFound("找不到這位學生");
+		}
+		if (snapshot.getString("deletedAt") == null) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "請先刪除這位學生，才能永久刪除");
+		}
+		List<DocumentReference> refs = new ArrayList<>();
+		await(sessions.whereEqualTo("studentId", id).get()).getDocuments().forEach((doc) -> refs.add(doc.getReference()));
+		await(lessons.whereEqualTo("studentId", id).get()).getDocuments().forEach((doc) -> refs.add(doc.getReference()));
+		// 學生本身最後刪：中途失敗時學生還在，可以再刪一次把剩下的清掉
+		refs.add(ref);
+		for (int i = 0; i < refs.size(); i += MAX_BATCH_WRITES) {
+			WriteBatch batch = firestore.batch();
+			refs.subList(i, Math.min(i + MAX_BATCH_WRITES, refs.size())).forEach(batch::delete);
+			await(batch.commit());
+		}
 	}
 
 	// 購買堂數：累計堂數與剩餘堂數同時增加
@@ -281,7 +328,7 @@ public class CoachRepository {
 
 	private static Student toStudent(String id, StudentRequest request, int total, int remaining) {
 		return new Student(id, request.name(), request.gender(), request.age(), request.goal(), request.plans(),
-				request.phone(), request.note(), total, remaining, List.of(), List.of());
+				request.phone(), request.note(), total, remaining, List.of(), List.of(), null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -290,7 +337,7 @@ public class CoachRepository {
 		List<String> plans = (List<String>) doc.get("plans");
 		return new Student(doc.getId(), doc.getString("name"), doc.getString("gender"), age == null ? null : age.intValue(),
 				doc.getString("goal"), plans == null ? List.of() : plans, doc.getString("phone"), doc.getString("note"),
-				intValue(doc.get("total")), intValue(doc.get("remaining")), history, toPrs(doc));
+				intValue(doc.get("total")), intValue(doc.get("remaining")), history, toPrs(doc), doc.getString("deletedAt"));
 	}
 
 	private static Map<String, Object> prMap(PersonalRecord pr) {

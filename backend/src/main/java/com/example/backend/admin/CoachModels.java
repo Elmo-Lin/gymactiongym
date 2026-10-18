@@ -27,6 +27,7 @@ public final class CoachModels {
 
 	// 學生。total 為累計購買堂數，remaining 為剩餘堂數；history 為訓練紀錄（依日期排序）
 	// prs 為測驗出來的 PR（依日期排序，保留每一次），記錄訓練時用來換算 %
+	// deletedAt 為刪除的時間（台灣時間，例如 2026-10-18T10:37），沒刪除是 null；刪除的學生可以復原
 	public record Student(
 			String id,
 			String name,
@@ -39,7 +40,8 @@ public final class CoachModels {
 			int total,
 			int remaining,
 			List<TrainingSession> history,
-			List<PersonalRecord> prs) {
+			List<PersonalRecord> prs,
+			String deletedAt) {
 	}
 
 	// 某個動作的 PR（最大重量）。同一個動作同一天只會有一筆，再輸入一次就會蓋過

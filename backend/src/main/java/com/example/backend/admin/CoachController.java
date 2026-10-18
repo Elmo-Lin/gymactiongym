@@ -15,7 +15,9 @@ import com.example.backend.admin.CoachModels.Student;
 import com.example.backend.admin.CoachModels.StudentRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +59,25 @@ public class CoachController {
 	@PutMapping("/students/{id}")
 	public Student updateStudent(@PathVariable String id, @Valid @RequestBody StudentRequest request) {
 		return coachRepository.updateStudent(id, request);
+	}
+
+	// 刪除（可以復原），回傳刪除的時間
+	@DeleteMapping("/students/{id}")
+	public Map<String, String> deleteStudent(@PathVariable String id) {
+		return Map.of("deletedAt", coachRepository.deleteStudent(id));
+	}
+
+	@PostMapping("/students/{id}/restore")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void restoreStudent(@PathVariable String id) {
+		coachRepository.restoreStudent(id);
+	}
+
+	// 永久刪除已刪除的學生，連同訓練紀錄與排課，無法復原
+	@DeleteMapping("/students/{id}/permanent")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void purgeStudent(@PathVariable String id) {
+		coachRepository.purgeStudent(id);
 	}
 
 	@PostMapping("/students/{id}/packages")
