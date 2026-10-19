@@ -285,10 +285,13 @@ dd {
   backdrop-filter: blur(6px);
 }
 
-.btn--outline-light:hover:not(:disabled) {
-  --btn-bg: #fff;
-  --btn-fg: var(--ink);
-  --btn-border: #fff;
+/* 只在有滑鼠的裝置變白：手機點過之後會一直停在 hover 狀態，按鈕就會卡成白色 */
+@media (hover: hover) {
+  .btn--outline-light:hover:not(:disabled) {
+    --btn-bg: #fff;
+    --btn-fg: var(--ink);
+    --btn-border: #fff;
+  }
 }
 
 .btn.is-loading {

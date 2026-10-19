@@ -246,8 +246,13 @@
     font-size: 16px;
   }
 
+  /* 手機：「立即預約」自己一行，「健身課程」「皮拉提斯」兩個平分第二行 */
   .hero__actions .btn {
-    flex: 1 1 160px;
+    flex: 1 1 0;
+  }
+
+  .hero__actions .btn:first-child {
+    flex-basis: 100%;
   }
 }
 
